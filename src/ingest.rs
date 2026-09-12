@@ -73,7 +73,7 @@ fn kind_for_definition(cap: &str) -> Option<&'static str> {
 fn collect(
     parser: &mut Parser,
     lang: &Language,
-    query_src: &str,
+    query: &Query,
     file_id: usize,
     src: &[u8],
     defs: &mut Vec<Symbol>,
@@ -83,12 +83,9 @@ fn collect(
     let Some(tree) = parser.parse(src, None) else {
         return;
     };
-    let Ok(query) = Query::new(lang, query_src) else {
-        return;
-    };
     let mut cursor = QueryCursor::new();
     let names = query.capture_names().to_vec();
-    let it = cursor.matches(&query, tree.root_node(), src);
+    let it = cursor.matches(query, tree.root_node(), src);
     for m in it {
         let mut def_kind: Option<&'static str> = None;
         let mut def_from_constant = false;
@@ -192,34 +189,76 @@ fn kind_specificity(k: &str) -> u8 {
 }
 
 pub fn ingest(files: &[FileEntry], root: &str) -> Ingest {
-    let mut parser = Parser::new();
+    // Parallel parse pool: one Parser + compiled Query per worker (tree-sitter parsers are not
+    // thread-safe). Files are partitioned into fixed contiguous slices so worker scheduling never
+    // reaches the output — the merge is in slice order and the symbol table is re-sorted anyway.
+    let worker_count = std::thread::available_parallelism().map(|n| n.get()).unwrap_or(1);
+    let chunk = files.len().div_ceil(worker_count).max(1);
+
+    let mut results: Vec<(Vec<Symbol>, Vec<Reference>)> = Vec::new();
+    std::thread::scope(|scope| {
+        let mut handles = Vec::new();
+        for w in 0..worker_count {
+            let start = w * chunk;
+            if start >= files.len() {
+                break;
+            }
+            let end = ((w + 1) * chunk).min(files.len());
+            let files_ref = files;
+            handles.push(scope.spawn(move || {
+                let mut parser = Parser::new();
+                let mut go_lang: Option<Language> = None;
+                let mut go_query: Option<Query> = None;
+                let mut java_lang: Option<Language> = None;
+                let mut java_query: Option<Query> = None;
+                let mut defs: Vec<Symbol> = Vec::new();
+                let mut refs: Vec<Reference> = Vec::new();
+                for file_id in start..end {
+                    let fe = &files_ref[file_id];
+                    let ext = fe.path.rsplit('.').next().unwrap_or("");
+                    let Ok(bytes) = std::fs::read(format!("{root}/{}", fe.path)) else {
+                        continue;
+                    };
+                    let (lang, query) = match ext {
+                        "go" => {
+                            if go_lang.is_none() {
+                                go_lang = lang_for("go");
+                                go_query = go_lang
+                                    .as_ref()
+                                    .and_then(|l| Query::new(l, GO_QUERY).ok());
+                            }
+                            (go_lang.as_ref(), go_query.as_ref())
+                        }
+                        "java" => {
+                            if java_lang.is_none() {
+                                java_lang = lang_for("java");
+                                java_query = java_lang
+                                    .as_ref()
+                                    .and_then(|l| Query::new(l, JAVA_QUERY).ok());
+                            }
+                            (java_lang.as_ref(), java_query.as_ref())
+                        }
+                        _ => (None, None),
+                    };
+                    let (Some(lang), Some(query)) = (lang, query) else {
+                        continue;
+                    };
+                    collect(&mut parser, lang, query, file_id, &bytes, &mut defs, &mut refs);
+                }
+                (defs, refs)
+            }));
+        }
+        for h in handles {
+            results.push(h.join().expect("parse worker"));
+        }
+    });
+
+    // Merge in slice order — deterministic by construction.
     let mut defs: Vec<Symbol> = Vec::new();
     let mut refs: Vec<Reference> = Vec::new();
-
-    for (file_id, fe) in files.iter().enumerate() {
-        let ext = fe.path.rsplit('.').next().unwrap_or("");
-        let (Some(lang), query_src) = (
-            lang_for(ext),
-            match ext {
-                "go" => GO_QUERY,
-                "java" => JAVA_QUERY,
-                _ => "",
-            },
-        ) else {
-            continue;
-        };
-        let Ok(bytes) = std::fs::read(format!("{}/{}", root, fe.path)) else {
-            continue;
-        };
-        collect(
-            &mut parser,
-            &lang,
-            query_src,
-            file_id,
-            &bytes,
-            &mut defs,
-            &mut refs,
-        );
+    for (d, r) in results {
+        defs.extend(d);
+        refs.extend(r);
     }
 
     // Dedup definitions that resolved to the same (file, name): the generic type_spec rule and the

@@ -42,6 +42,10 @@ fn is_skipped_dir(name: &str) -> bool {
     if name.len() > 12 && name.starts_with("cmake-build-") {
         return true;
     }
+    // plugin/tool build-output dirs (grule's .grule-plugins-tmp holds compiled .so + generated .go)
+    if name.contains("plugins-tmp") {
+        return true;
+    }
     name.len() > 5 && name.ends_with(".dSYM")
 }
 
