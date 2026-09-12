@@ -16,6 +16,21 @@ enough to hold in your head — and verifies every byte it emits against the rip
 inspired it. The golden outputs in `test/golden/` are committed ripwire output, so the parity claim
 is checkable, not atmospheric.
 
+## Install
+
+One line, no compiler required (a prebuilt release is used when one exists; otherwise it builds
+from source, which needs Rust):
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/adibfarrasy/agentatlas.rs/main/scripts/install.sh | bash
+export PATH="$HOME/.local/bin:$PATH"
+```
+
+The same line also copies the `agentatlas` skill into every coding agent it finds on the machine —
+Claude Code, Cursor, Codex, opencode — so the agent learns to reach for `agentatlas` before blind
+grep + whole-file reads. `AGENTATLAS_YES=1` skips the confirmation; `AGENTATLAS_SKIP_SKILLS=1`
+installs the binary only.
+
 ## Build
 
 ```bash

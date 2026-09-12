@@ -88,8 +88,15 @@ install_binary() {
 install_skill() {
     [ "${AGENTATLAS_SKIP_SKILLS:-0}" = "1" ] && { echo "install.sh: skills skipped (AGENTATLAS_SKIP_SKILLS=1)"; return 0; }
     # fetch the canonical SKILL.md from the repo
-    skillUrl="https://raw.githubusercontent.com/${repo}/main/skills/agentatlas/SKILL.md"
-    skillText="$( curl -fsSL "$skillUrl" 2>/dev/null )" || { echo "install.sh: could not fetch the skill from $skillUrl" >&2; return 1; }
+    for skillUrl in \
+        "https://raw.githubusercontent.com/${repo}/main/skills/agentatlas/SKILL.md" \
+        "https://raw.githubusercontent.com/${repo}/refs/heads/main/skills/agentatlas/SKILL.md"
+    do
+        if skillText="$( curl -fsSL "$skillUrl" 2>/dev/null )"; then
+            break
+        fi
+    done
+    [ -n "${skillText:-}" ] || { echo "install.sh: could not fetch the skill from the repo" >&2; return 1; }
 
     installed=0
     install_to() { # $1 = agent name, $2 = skill dir (only installed if it already exists)
