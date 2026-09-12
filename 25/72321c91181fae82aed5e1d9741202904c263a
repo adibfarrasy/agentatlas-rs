@@ -1,0 +1,41 @@
+README.md
+  s_6375756fc4681c::t_b81e9efb17f645 11,13-17,21-23,42-44
+CREDITS.md
+  s_6375756fc4681c::t_4a0eb47aebc3de 31
+LICENSE
+  s_6375756fc4681c::t_638bce69281da5 1-201
+src/cli.rs
+  s_6375756fc4681c::t_c322ad230d67f8 119-154
+src/extraverbs.rs
+  s_6375756fc4681c::t_aab1028470ff22 2,149,176
+src/forverb.rs
+  s_6375756fc4681c::t_f6a1e6bca753c5 57,443
+src/gain.rs
+  s_6375756fc4681c::t_9eb8e6d1c25a0a 216
+src/graph.rs
+  s_6375756fc4681c::t_b965ba2becf67e 20,28
+src/ingest.rs
+  s_6375756fc4681c::t_0e35934fba8fa2 91-92,162
+src/main.rs
+  s_6375756fc4681c::t_15be59b9dcb472 18-24
+src/rank.rs
+  s_6375756fc4681c::t_dfabeed904f18e 38-40
+src/verbs.rs
+  s_6375756fc4681c::t_f53025cb3604a8 13,24,29,87
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.11",
+  "base_commit_sha": "2572321c91181fae82aed5e1d9741202904c263a",
+  "prompts": {},
+  "sessions": {
+    "s_6375756fc4681c": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_f6d22c3f1ffe2RNQxUoYBDMJ2x",
+        "model": "deepseek-v4-flash"
+      },
+      "human_author": "Adib Farrasy <adibfarrasy@gmail.com>"
+    }
+  }
+}
