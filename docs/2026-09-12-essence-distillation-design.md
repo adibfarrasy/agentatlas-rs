@@ -6,7 +6,7 @@ Destination: personal fork (no upstream merge)
 ## Goal
 
 `ripwire` is a ~168K-line C++23 codebase whose core — a deterministic codebase index for coding
-agents (crawl → call graph → PageRank → minified XML, served over CLI and MCP) — is the thing worth
+agents (crawl → call graph → PageRank → minified XML, served over the CLI) — is the thing worth
 keeping. The surrounding repo is marketing, docs walls, and a long tail of lenses/verbs the user
 does not want.
 
@@ -51,10 +51,12 @@ other languages are dropped.
 - **18 verbs:** `analyze`, `find_symbol`, `find_referencing_symbols`, `grep`, `for`/`explore`
   (`pack_task` alias), `lego`, `fetch_body`, `batch`, `path_between`, `connect`, `from_trace`,
   `impact`, `uses`, `whereis`, `owners`, `exemplar`, `quality_delta`, `edit_check`.
-- **CLI + MCP front doors**, one renderer shared, byte-identical twins.
+- **CLI front door** only. MCP was considered and dropped (2026-09-12): the CLI pipe is the cheaper
+  interface for every agent that runs shell commands, and building a JSON-RPC server doubles the surface
+  for no token win.
 - **Determinism + honesty contracts.**
-- **Meta-agent layer** (`skills/`, `prompts/`, `hooks/`, `.mcp.json`, `.codex-plugin/`), re-synced to
-  the surviving surface after the swap.
+- **Meta-agent layer** (`skills/`, `prompts/`, `hooks/`), re-synced to the surviving surface after the
+  swap. No `.mcp.json`, no `.codex-plugin/` — the CLI is the integration surface.
 - **New:** `ripwire gain` — per-user cross-repo tokens+time savings ledger (spec below). Rust-only,
   no C++ oracle needed.
 
@@ -97,8 +99,7 @@ other languages are dropped.
 4. **Rank** — PageRank, strict IEEE, block-1024 reductions. Oracle check: identical rank vector.
 5. **Serialize + CLI** — minified XML, flagless map, then the 18 verbs. Oracle check: byte-identical
    stdout per verb.
-6. **MCP** — JSON-RPC server, 18 verbs, twin parity. Oracle check: identical responses.
-7. **gain** — ledger + report + gate.
+6. **gain** — ledger + report + gate.
 8. **Promotion** — delete C++ (src/, CMake, cmake/, vendored grammars), promote `rust/` to root,
    rewrite README/docs/skills for the surviving surface, run the full transferred gate suite green,
    ASan-equivalent (cargo test + Miri/valgrind where sensible), squash history.
@@ -113,6 +114,6 @@ other languages are dropped.
 
 ## Non-goals
 - No LSP integration, no new languages, no new retrieval features.
-- No MCP twin for `gain`.
+- **No MCP server** — the CLI is the only front door; the verbs' text output is the surface agents use.
 - The C++ cut plan (phases 1–4 of the previous design) is **cancelled** — the essence is built
   directly in Rust; the C++ long tail is deleted wholesale at promotion.

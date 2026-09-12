@@ -4,14 +4,15 @@
 > superpowers:subagent-driven-development to implement this plan task-by-task. Steps use checkbox
 > (`- [ ]`) syntax for tracking.
 
-**Goal:** Rebuild ripwire's essence — crawl → call graph → PageRank → minified XML over CLI + MCP,
+**Goal:** Rebuild ripwire's essence — crawl → call graph → PageRank → minified XML over the CLI,
 18 verbs, plus new `gain` — in Rust, **byte-identical to the C++ oracle** on Go and Java corpora,
 then delete the C++.
 
 **Architecture:** A Rust crate in `rust/` compiled against the vendored `tree-sitter-go` +
 `tree-sitter-java` C sources (via `build.rs` + `cc`), driving the `tree-sitter` crate's C-API FFI.
 The surviving C++ tree at HEAD (binary already at `./build/ripwire`) is the diff oracle throughout.
-Milestones: skeleton+harness → ingest → graph → rank → serialize+CLI → MCP → gain → promotion.
+Milestones: skeleton+harness → ingest → graph → rank → serialize+CLI → verbs → gain → promotion.
+No MCP: the CLI pipe is the integration surface (decision 2026-09-12).
 
 **Tech Stack:** Rust (stable), cargo, `tree-sitter` crate (bundled C core), `cc` (build dep),
 vendored grammar C sources, bash gate suite (`test/pargates.py`), Python generators.
@@ -229,27 +230,7 @@ diff its output on a fixture:
 
 ---
 
-## Milestone 6 — MCP server
-
-Reimplement `src/mcp*.h`: JSON-RPC over stdio, `initialize`, `tools/list` (18 verbs + `pack_task`
-alias + `gain`), `tools/call`, field tables (`kMcpVerbFields` equivalents), refusal schemas,
-text/JSON twin builders. MCP responses must match the C++ server byte-for-byte for the surviving
-verbs (the `mcpclidiffcheck` CLI/MCP twin parity applies).
-
-**Files:**
-- Create: `rust/src/mcp/mod.rs`, `rust/src/mcp/tools.rs`, `rust/src/mcp/verbs.rs`
-
-- [ ] **Step 1:** Implement the server + tools/list; oracle-check tools/list against the C++ MCP
-  output (strip session-varying fields like ids; diff schemas byte-for-byte).
-- [ ] **Step 2:** Implement the 18 verb twins; diff against the oracle's MCP responses.
-- [ ] **Step 3:** Run surviving MCP gates (`mcpverbscheck`, `mcpcontractcheck`, `mcpclidiffcheck`
-  equivalents) green.
-- [ ] **Step 4:** Commit milestone 6.
-  `git add -A && git commit -m "feat(rust): MCP server at oracle parity"`
-
----
-
-## Milestone 7 — `gain`
+## Milestone 6 — `gain`
 
 Implement per the spec: ledger (XDG path, `--gain-log`/`--no-gain-log`, env `RIPWIRE_GAIN_LOG`),
 auto-log on the 18 verbs, naive-tokens from the answer's distinct-file byte sum ÷ 4, `naive_ms` =
@@ -268,7 +249,7 @@ marking) listed in `test/regression.sh` same-commit.
 
 ---
 
-## Milestone 8 — Promotion
+## Milestone 7 — Promotion
 
 - [ ] **Step 1:** Delete the C++ tree: `git rm -r src cmake CMakeLists.txt lsan_suppressions.txt`
   and the vendored grammars not needed (keep `third_party/deps/{go,java}`), C++-specific gates
