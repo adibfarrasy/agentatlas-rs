@@ -1,0 +1,31 @@
+scripts/hooks/agentatlas-reminder.txt
+  s_990f7c7907dd2c::t_2327eeb5270f30 1-8
+scripts/hooks/agentatlas-prehook.sh
+  s_990f7c7907dd2c::t_78756838c45038 1-30
+README.md
+  s_990f7c7907dd2c::t_c8247b91ec4b18 1
+  s_990f7c7907dd2c::t_b766475dea85d5 7
+  s_990f7c7907dd2c::t_e5ca0ae854ec82 25
+scripts/hooks/agentatlas-opencode.ts
+  s_990f7c7907dd2c::t_0e6e69b0edd279 1-35
+scripts/install.sh
+  s_990f7c7907dd2c::t_056027592f0575 18
+  s_990f7c7907dd2c::t_63db2a24479217 4
+  s_990f7c7907dd2c::t_8947ae4f90c11d 12
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.11",
+  "base_commit_sha": "49e580e5792e8dd0f687b2a9a75d9a3269e2c651",
+  "prompts": {},
+  "sessions": {
+    "s_990f7c7907dd2c": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_f6bd3021cffe4tUj42YB7v02KG",
+        "model": "deepseek-v4-flash"
+      },
+      "human_author": "Adib Farrasy <adibfarrasy@gmail.com>"
+    }
+  }
+}
