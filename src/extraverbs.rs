@@ -178,7 +178,7 @@ pub fn expand(ing: &Ingest, g: &Graph, root: &str, sel: &str) -> String {
 
     let bodies = render_bodies(ing, g, root, id);
     let bodies_doc = crate::legends::BODIES_LEGEND.len() + bodies.len();
-    let bundle = 5 + 30 + 17 + bodies_doc + 6;
+    let bundle = 5 + 30 + 18 + bodies_doc + 6;
 
     let mode;
     let reason;
@@ -219,7 +219,7 @@ pub fn expand(ing: &Ingest, g: &Graph, root: &str, sel: &str) -> String {
 }
 /// --from-trace: map a stack trace onto indexed symbols (generic path:line frames).
 pub fn from_trace(ing: &Ingest, g: &Graph, root: &str, trace_file: &str) -> String {
-    use crate::legends::{FT_PREFIX, FT_SUFFIX};
+    use crate::legends::FT_SUFFIX;
     let Ok(text) = std::fs::read_to_string(trace_file) else {
         eprintln!("ripwire: --from-trace: cannot open '{trace_file}'");
         return String::new();
@@ -255,7 +255,14 @@ pub fn from_trace(ing: &Ingest, g: &Graph, root: &str, trace_file: &str) -> Stri
         "frame_lines={} parsed={} in_corpus={} skipped=0 (out of every root - listed, never ranked) merged=0 unresolved=0",
         frame_lines, parsed, in_corpus
     );
-    let legend = format!("{}{}.{}", FT_PREFIX, stats, FT_SUFFIX);
+    let legend = format!(
+        "{}\"{}{}{}.{}",
+        crate::legends::FT_PREFIX_HEAD,
+        esc(trace_file),
+        crate::legends::FT_PREFIX_TAIL,
+        stats,
+        FT_SUFFIX
+    );
 
     let trace_el = format!(
         "<trace src=\"{}\" format=\"generic\" frame_lines=\"{}\" parsed=\"{}\" in_corpus=\"{}\" skipped=\"0\" merged=\"0\" unresolved=\"0\" suspects=\"{}\">",

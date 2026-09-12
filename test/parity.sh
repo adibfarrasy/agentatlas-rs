@@ -10,6 +10,7 @@ BIN="${BIN:-./target/debug/agentatlas}"
 rm -rf /tmp/golden-root
 mkdir -p /tmp/golden-root
 cp -R test/fixtures/golang test/fixtures/java /tmp/golden-root/
+cp test/fixtures/golang/trace.txt /tmp/golden-root/golang/
 
 fail=0
 check() {
@@ -37,5 +38,6 @@ check for-find golang --for="find the point distance"
 check at-main golang --at=main.go:13
 check impact-point golang --impact=Point
 check expand-main2 golang --expand=main.go:main
+check fromtrace2 golang --from-trace=/tmp/golden-root/golang/trace.txt
 
 exit "$fail"
