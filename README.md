@@ -26,10 +26,9 @@ curl -fsSL https://raw.githubusercontent.com/adibfarrasy/agentatlas.rs/main/scri
 export PATH="$HOME/.local/bin:$PATH"
 ```
 
-The same line also copies the `agentatlas` skill into every coding agent it finds on the machine —
-Claude Code, Cursor, Codex, opencode — so the agent learns to reach for `agentatlas` before blind
-grep + whole-file reads. `AGENTATLAS_YES=1` skips the confirmation; `AGENTATLAS_SKIP_SKILLS=1`
-installs the binary only.
+It installs the binary, then asks whether to copy the `agentatlas` skill into the coding agents
+it finds on the machine — Claude Code, Cursor, Codex, opencode — so they learn to reach for
+`agentatlas` before blind grep + whole-file reads. One-time question; answer y once.
 
 ## Build
 

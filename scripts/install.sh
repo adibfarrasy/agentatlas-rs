@@ -12,8 +12,6 @@
 #   AGENTATLAS_VERSION        a release tag to fetch (e.g. "v0.1.0"); default: latest release.
 #   AGENTATLAS_INSTALL_PREFIX install prefix; the binary lands in "$PREFIX/bin". Default: ~/.local.
 #   AGENTATLAS_SOURCE=1       force a from-source build (cargo) even when a release binary exists.
-#   AGENTATLAS_YES=1          skip the interactive confirmation (CI / scripted installs).
-#   AGENTATLAS_SKIP_SKILLS=1  install the binary only, leave agent configs alone.
 set -eu
 
 repo="${AGENTATLAS_REPO:-adibfarrasy/agentatlas.rs}"
@@ -22,17 +20,6 @@ binDir="$prefix/bin"
 version="${AGENTATLAS_VERSION:-}"
 
 command -v curl >/dev/null 2>&1 || { echo "install.sh: curl is required" >&2; exit 2; }
-
-confirm() {
-    [ "${AGENTATLAS_YES:-0}" = "1" ] && return 0
-    printf '%s\n' "This installs agentatlas to $prefix and copies its skill into your agents' configs."
-    printf '%s\n' "Continue? [y/N]"
-    read -r answer || exit 1
-    case "$answer" in
-        y|Y|yes|YES) return 0 ;;
-        *) echo "aborted."; exit 1 ;;
-    esac
-}
 
 # ── 1. the binary ──────────────────────────────────────────────────────────────────────────────────────
 install_binary() {
@@ -86,7 +73,6 @@ install_binary() {
 
 # ── 2. the skill ───────────────────────────────────────────────────────────────────────────────────────
 install_skill() {
-    [ "${AGENTATLAS_SKIP_SKILLS:-0}" = "1" ] && { echo "install.sh: skills skipped (AGENTATLAS_SKIP_SKILLS=1)"; return 0; }
     # fetch the canonical SKILL.md from the repo
     for skillUrl in \
         "https://raw.githubusercontent.com/${repo}/main/skills/agentatlas/SKILL.md" \
@@ -118,9 +104,16 @@ install_skill() {
     fi
 }
 
-confirm
 install_binary
-install_skill
+
+# ── 3. the skills: one-time choice, asked once ──────────────────────────────────────────────────────────
+printf '%s\n' "Install the agentatlas skill into your coding agents (Claude Code, Cursor, Codex, opencode)?" 
+printf '%s\n' "It teaches them to reach for agentatlas before blind grep + whole-file reads. [y/N]"
+read -r answer || exit 1
+case "$answer" in
+    y|Y|yes|YES) install_skill ;;
+    *) echo "install.sh: skills skipped" ;;
+esac
 
 echo
 echo "agentatlas installed. Make sure $binDir is on your PATH:"
