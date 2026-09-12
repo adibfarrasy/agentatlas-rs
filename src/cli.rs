@@ -9,6 +9,7 @@ pub struct Config {
     pub at: Option<String>,
     pub expand: Option<String>,
     pub impact: Option<String>,
+    pub from_trace: Option<String>,
     pub top_k: Option<usize>,
     pub legend: Option<String>,
 }
@@ -25,6 +26,7 @@ impl Config {
             at: None,
             expand: None,
             impact: None,
+            from_trace: None,
             top_k: None,
             legend: None,
         };
@@ -37,6 +39,8 @@ impl Config {
                 c.callees = Some(v.to_string());
             } else if let Some(v) = a.strip_prefix("--for=") {
                 c.for_query = Some(v.to_string());
+            } else if let Some(v) = a.strip_prefix("--from-trace=") {
+                c.from_trace = Some(v.to_string());
             } else if let Some(v) = a.strip_prefix("--at=") {
                 c.at = Some(v.to_string());
             } else if let Some(v) = a.strip_prefix("--expand=") {
@@ -69,6 +73,7 @@ pub enum Verb {
     At(String),
     Expand(String),
     Impact(String),
+    FromTrace(String),
 }
 
 impl Config {
@@ -89,6 +94,8 @@ impl Config {
             Verb::Expand(s.clone())
         } else if let Some(s) = &self.impact {
             Verb::Impact(s.clone())
+        } else if let Some(s) = &self.from_trace {
+            Verb::FromTrace(s.clone())
         } else {
             Verb::Map
         }

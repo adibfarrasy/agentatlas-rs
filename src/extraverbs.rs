@@ -87,6 +87,10 @@ pub fn impact(ing: &Ingest, g: &Graph, root: &str, sel: &str, pr_iters: u32) -> 
 
 /// Render the `<bodies>` block the bundle measurement prices (the --expand --top-k=0 form).
 fn render_bodies(ing: &Ingest, g: &Graph, root: &str, id: usize) -> String {
+    render_bodies_opt(ing, g, root, id, true)
+}
+
+fn render_bodies_opt(ing: &Ingest, g: &Graph, root: &str, id: usize, with_sibs_inc: bool) -> String {
     let s = &ing.symbols[id];
     let rel = &ing.files[s.file_id];
     let bytes = std::fs::read(format!("{root}/{rel}")).unwrap_or_default();
@@ -95,31 +99,6 @@ fn render_bodies(ing: &Ingest, g: &Graph, root: &str, id: usize) -> String {
     } else {
         String::new()
     };
-    let mut sibs: Vec<&str> = ing
-        .symbols
-        .iter()
-        .filter(|x| x.file_id == s.file_id && x.name != s.name)
-        .map(|x| x.name.as_str())
-        .collect();
-    let sibs_total = sibs.len();
-    sibs.truncate(8);
-    let mut incs: Vec<String> = Vec::new();
-    if rel.ends_with(".go") {
-        let text = String::from_utf8_lossy(&bytes).into_owned();
-        for line in text.lines() {
-            let t = line.trim();
-            if t.starts_with("import ") {
-                let rest = t["import ".len()..].trim();
-                let inner = rest.trim_start_matches('(').trim_end_matches(')').trim();
-                for part in inner.split_whitespace() {
-                    if part.starts_with('"') && part.ends_with('"') {
-                        incs.push(part.to_string());
-                    }
-                }
-            }
-        }
-    }
-    let inc_total = incs.len();
     let mut b = format!(
         "<b t=\"{}\" l=\"{}\" p=\"{}\" n=\"{}\"",
         crate::serialize::sym_tag(s.kind),
@@ -127,14 +106,41 @@ fn render_bodies(ing: &Ingest, g: &Graph, root: &str, id: usize) -> String {
         esc(rel),
         esc(&s.name)
     );
-    if !sibs.is_empty() {
-        b.push_str(&format!(" sibs=\"{}\"", esc(&sibs.join(","))));
+    if with_sibs_inc {
+        let mut sibs: Vec<&str> = ing
+            .symbols
+            .iter()
+            .filter(|x| x.file_id == s.file_id && x.name != s.name)
+            .map(|x| x.name.as_str())
+            .collect();
+        let sibs_total = sibs.len();
+        sibs.truncate(8);
+        if !sibs.is_empty() {
+            b.push_str(&format!(" sibs=\"{}\"", esc(&sibs.join(","))));
+        }
+        b.push_str(&format!(" sibs_total=\"{}\"", sibs_total));
+        let mut incs: Vec<String> = Vec::new();
+        if rel.ends_with(".go") {
+            let text = String::from_utf8_lossy(&bytes).into_owned();
+            for line in text.lines() {
+                let t = line.trim();
+                if t.starts_with("import ") {
+                    let rest = t["import ".len()..].trim();
+                    let inner = rest.trim_start_matches('(').trim_end_matches(')').trim();
+                    for part in inner.split_whitespace() {
+                        if part.starts_with('"') && part.ends_with('"') {
+                            incs.push(part.to_string());
+                        }
+                    }
+                }
+            }
+        }
+        let inc_total = incs.len();
+        if !incs.is_empty() {
+            b.push_str(&format!(" inc=\"{}\"", esc(&incs.join(","))));
+        }
+        b.push_str(&format!(" inc_total=\"{}\"", inc_total));
     }
-    b.push_str(&format!(" sibs_total=\"{}\"", sibs_total));
-    if !incs.is_empty() {
-        b.push_str(&format!(" inc=\"{}\"", esc(&incs.join(","))));
-    }
-    b.push_str(&format!(" inc_total=\"{}\"", inc_total));
     b.push_str("><![CDATA[");
     b.push_str(&body);
     b.push_str("]]>");
@@ -145,7 +151,7 @@ fn render_bodies(ing: &Ingest, g: &Graph, root: &str, id: usize) -> String {
         for &to in &callees {
             let cs = &ing.symbols[to];
             b.push_str(&format!(
-                "<c n=\"{}\" l=\"{}\">{};</c>",
+                "<c n=\"{}\" l=\"{}\">{}</c>",
                 esc(&cs.name),
                 cs.line,
                 esc(&crate::forverb::signature(ing, root, to))
@@ -210,4 +216,120 @@ pub fn expand(ing: &Ingest, g: &Graph, root: &str, sel: &str) -> String {
         src_open,
         cdata
     )
+}
+/// --from-trace: map a stack trace onto indexed symbols (generic path:line frames).
+pub fn from_trace(ing: &Ingest, g: &Graph, root: &str, trace_file: &str) -> String {
+    use crate::legends::{FT_PREFIX, FT_SUFFIX};
+    let Ok(text) = std::fs::read_to_string(trace_file) else {
+        eprintln!("ripwire: --from-trace: cannot open '{trace_file}'");
+        return String::new();
+    };
+    let mut frames: Vec<(String, u32, Option<usize>)> = Vec::new();
+    for line in text.lines() {
+        let t = line.trim();
+        let Some((path, ls)) = t.rsplit_once(':') else { continue };
+        let Ok(l) = ls.parse::<u32>() else { continue };
+        if path.contains(' ') {
+            continue;
+        }
+        let file_id = ing.files.iter().position(|p| path.ends_with(p) || p == path);
+        let sym = file_id.and_then(|fid| {
+            ing.symbols
+                .iter()
+                .enumerate()
+                .filter(|(_, s)| s.file_id == fid && s.line <= l && s.end_line >= l)
+                .max_by_key(|(_, s)| s.line)
+                .map(|(id, _)| id)
+        });
+        frames.push((path.to_string(), l, sym));
+    }
+    let frame_lines = frames.len();
+    let parsed = frames.len();
+    let in_corpus = frames.iter().filter(|f| f.2.is_some()).count();
+    let suspects = in_corpus;
+
+    let mut order: Vec<usize> = (0..frames.len()).filter(|&i| frames[i].2.is_some()).collect();
+    order.sort_by_key(|&i| i);
+
+    let stats = format!(
+        "frame_lines={} parsed={} in_corpus={} skipped=0 (out of every root - listed, never ranked) merged=0 unresolved=0",
+        frame_lines, parsed, in_corpus
+    );
+    let legend = format!("{}{}.{}", FT_PREFIX, stats, FT_SUFFIX);
+
+    let trace_el = format!(
+        "<trace src=\"{}\" format=\"generic\" frame_lines=\"{}\" parsed=\"{}\" in_corpus=\"{}\" skipped=\"0\" merged=\"0\" unresolved=\"0\" suspects=\"{}\">",
+        esc(trace_file), frame_lines, parsed, in_corpus, suspects
+    );
+    let mut frames_xml = String::new();
+    for (rank, &i) in order.iter().enumerate() {
+        let (path, l, _) = &frames[i];
+        let sym_id = frames[i].2.unwrap();
+        let s = &ing.symbols[sym_id];
+        let mut f = format!(
+            "<frame rank=\"{}\" n=\"{}\" t=\"{}\" p=\"{}\" resolved_by=\"line\"",
+            rank + 1, esc(&s.name), crate::serialize::sym_tag(s.kind), esc(&format!("{path}:{l}"))
+        );
+        if rank == 0 {
+            f.push_str(" innermost=\"1\"");
+        }
+        f.push_str("/>");
+        frames_xml.push_str(&f);
+    }
+
+    let fan = |id: usize| -> u32 {
+        let mut seen = std::collections::HashSet::new();
+        for (from, to, _) in &g.out_edges {
+            if *to == id {
+                seen.insert(*from);
+            }
+        }
+        seen.len() as u32
+    };
+    let mut sigs = String::new();
+    sigs.push_str("<sigs>");
+    for (rank, &i) in order.iter().enumerate() {
+        let id = frames[i].2.unwrap();
+        let s = &ing.symbols[id];
+        sigs.push_str(&format!(
+            "<d l=\"{}\" n=\"{}\" p=\"{}\" cx=\"{}\" ccx=\"0\" in=\"{}\" r=\"{}\"{}{}>{}</d>",
+            s.line, esc(&s.name), esc(&ing.files[s.file_id]), s.cx, fan(id), rank + 1,
+            if rank == 0 { format!(" next=\"--expand={}:{}\"", esc(&ing.files[s.file_id]), esc(&s.name)) } else { String::new() },
+            "",
+            esc(&crate::forverb::signature(ing, root, id))
+        ));
+    }
+    sigs.push_str("</sigs>");
+
+    let bodies = if let Some(&first) = order.first() {
+        render_bodies_opt(ing, g, root, frames[first].2.unwrap(), false)
+    } else {
+        String::new()
+    };
+
+    let child = format!("{}{}</trace>{}{}</ctx>", trace_el, frames_xml, sigs, bodies);
+    let open = |est: usize| -> String {
+        let next_attr = if let Some(&first) = order.first() {
+            let (path, l, _) = &frames[first];
+            let rel = path.split('/').next_back().unwrap_or(path);
+            format!(" next=\"--slice=@{}\"", esc(&format!("{rel}:{l}")))
+        } else {
+            String::new()
+        };
+        format!(
+            "<ctx task=\"{}\"{} est_tokens=\"{}\"",
+            esc(trace_file), next_attr, est
+        )
+    };
+    let mut est = 0usize;
+    let mut head = format!("{}>{}", open(est), legend);
+    for _ in 0..4 {
+        let next = ((head.len() + child.len()) as f64 / 2.50 + 0.5) as usize;
+        if next == est {
+            break;
+        }
+        est = next;
+        head = format!("{}>{}", open(est), legend);
+    }
+    format!("{}{}", head, child)
 }

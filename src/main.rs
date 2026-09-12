@@ -38,6 +38,7 @@ fn main() {
         cli::Verb::Uses(s) => verbs::uses(&ing, &g, &root, &s),
         cli::Verb::At(s) => extraverbs::at(&ing, &root, &s),
         cli::Verb::Expand(s) => extraverbs::expand(&ing, &g, &root, &s),
+        cli::Verb::FromTrace(s) => extraverbs::from_trace(&ing, &g, &root, &s),
         cli::Verb::Impact(s) => {
             let run = rank::pagerank(&g);
             extraverbs::impact(&ing, &g, &root, &s, run.iterations)
