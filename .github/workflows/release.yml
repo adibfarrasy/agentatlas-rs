@@ -30,6 +30,11 @@ jobs:
           - os: macos-latest
             asset_os: macos
             asset_arch: x64
+          # cross-compile arm64 on the x64 macOS runner (clang + universal SDK)
+          - os: macos-latest
+            asset_os: macos
+            asset_arch: arm64
+            target: aarch64-apple-darwin
           - os: windows-latest
             asset_os: windows
             asset_arch: x64
@@ -42,12 +47,14 @@ jobs:
 
       - name: Read cargo version
         id: ver
+        shell: bash
         run: |
           VERSION="$(sed -n 's/^version = "\(.*\)"/v\1/p' Cargo.toml | head -1)"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Check whether the release already exists
         id: exists
+        shell: bash
         run: |
           if gh release view "v${{ steps.ver.outputs.version }}" >/dev/null 2>&1; then
             echo "exists=true" >> "$GITHUB_OUTPUT"
@@ -61,9 +68,24 @@ jobs:
         if: steps.exists.outputs.exists == 'false'
         uses: dtolnay/rust-toolchain@stable
 
+      - name: Add cross target
+        if: steps.exists.outputs.exists == 'false' && matrix.target != ''
+        shell: bash
+        run: rustup target add ${{ matrix.target }}
+
       - name: Build release binary
         if: steps.exists.outputs.exists == 'false'
-        run: cargo build --release
+        shell: bash
+        run: |
+          if [ -n "${{ matrix.target }}" ]; then
+            cargo build --release --target ${{ matrix.target }}
+            BIN="target/${{ matrix.target }}/release/agentatlas"
+          else
+            cargo build --release
+            BIN="target/release/agentatlas"
+          fi
+          [ -f "$BIN" ] || BIN="$BIN.exe"
+          echo "BIN=$BIN" >> "$GITHUB_ENV"
 
       - name: Package asset
         if: steps.exists.outputs.exists == 'false'
@@ -71,12 +93,9 @@ jobs:
         run: |
           VERSION="${{ steps.ver.outputs.version }}"
           NAME="agentatlas-${VERSION}-${{ matrix.asset_os }}-${{ matrix.asset_arch }}"
-          if [ "${{ matrix.asset_os }}" = "windows" ]; then
-            cp target/release/agentatlas.exe /tmp/agentatlas
-            tar -czf "${NAME}.tar.gz" -C /tmp agentatlas
-          else
-            tar -czf "${NAME}.tar.gz" -C target/release agentatlas
-          fi
+          mkdir -p /tmp/pkg
+          cp "$BIN" /tmp/pkg/agentatlas
+          tar -czf "${NAME}.tar.gz" -C /tmp/pkg agentatlas
           echo "asset=${NAME}.tar.gz" >> "$GITHUB_OUTPUT"
 
       - name: Upload asset
