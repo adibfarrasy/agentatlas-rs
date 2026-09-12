@@ -44,5 +44,6 @@ agentatlas . --expand=src/client.go:ResolveRequest --top-k=0
 ## Notes
 
 - First call is ~0.1s warm; the binary is offline, no index server, no daemon.
-- Go + Java only. Other languages are not yet indexed — grep those normally.
+- 25 languages: Go, Java, C/C++, C#, Python, Rust, TypeScript/TSX, JavaScript, Ruby, PHP,
+  Swift, Kotlin, Dart, Elixir, Lua, Bash, Objective-C, CUDA, JSON, TOML, YAML, HTML.
 - Track your savings: `agentatlas gain` rolls up tokens/time saved across your runs.

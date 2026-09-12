@@ -32,7 +32,7 @@ const MAX_FILE_BYTES: usize = 4 * 1024 * 1024;
 const BINARY_SNIFF_CAP: usize = 4096;
 
 pub fn is_source(ext: &str) -> bool {
-    ext == "go" || ext == "java"
+    crate::ingest::grammar_for_ext(ext).is_some()
 }
 
 fn is_skipped_dir(name: &str) -> bool {

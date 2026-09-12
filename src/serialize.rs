@@ -1,6 +1,7 @@
 use crate::graph::Graph;
 use crate::ingest::{
-    Ingest, KIND_CLASS, KIND_FUNCTION, KIND_INTERFACE, KIND_METHOD, KIND_STRUCT, KIND_VAR,
+    Ingest, KIND_CLASS, KIND_FUNCTION, KIND_INTERFACE, KIND_MACRO, KIND_METHOD, KIND_SECTION,
+    KIND_STRUCT, KIND_VAR,
 };
 use crate::rank::RankRun;
 
@@ -120,6 +121,8 @@ pub fn sym_tag(kind: &str) -> &str {
         KIND_STRUCT => "struct",
         KIND_INTERFACE => "iface",
         KIND_VAR => "var",
+        KIND_SECTION => "sec",
+        KIND_MACRO => "macro",
         _ => "var",
     }
 }

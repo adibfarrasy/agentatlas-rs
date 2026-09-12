@@ -4,8 +4,9 @@ version = "0.7.2"
 edition = "2021"
 
 [dependencies]
-tree-sitter = "0.23"
-tree-sitter-language = "0.1.5"
+tree-sitter = "0.25"
+tree-sitter-language = "0.1.8"
+streaming-iterator = "0.1"
 
 [build-dependencies]
 cc = "1"

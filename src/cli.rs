@@ -118,7 +118,8 @@ impl Config {
 }
 
 pub const HELP: &str = r#"agentatlas — a deterministic codebase map for coding agents.
-Go + Java. Offline. One binary. Same output bytes, every run.
+25 languages (Go, Java, C/C++, Python, Rust, TS/JS, Ruby, PHP, and more).
+Offline. One binary. Same output bytes, every run.
 
 USAGE
   agentatlas <dir> [VERB] [options]

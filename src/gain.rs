@@ -160,6 +160,7 @@ pub struct GainReport {
     pub naive_tokens: u64,
     pub saved_tokens: i64,
     pub saved_pct: i64,
+    pub saved_ms_pct: i64,
     pub spent_ms: u64,
     pub naive_ms: u64,
     pub saved_ms: i64,
@@ -212,8 +213,14 @@ pub fn report(ledger: &str) -> Option<GainReport> {
     }
     let _ = bad_lines;
     let saved = naive_tokens as i64 - spent_tokens as i64;
-    let saved_pct = if naive_tokens > 0 {
-        saved * 100 / naive_tokens as i64
+    let saved_pct = if naive_tokens > 0 && saved > 0 {
+        (saved * 100 / naive_tokens as i64).min(100)
+    } else {
+        0
+    };
+    let saved_ms = naive_ms as i64 - spent_ms as i64;
+    let saved_ms_pct = if naive_ms > 0 && saved_ms > 0 {
+        (saved_ms * 100 / naive_ms as i64).min(100)
     } else {
         0
     };
@@ -223,9 +230,10 @@ pub fn report(ledger: &str) -> Option<GainReport> {
         naive_tokens,
         saved_tokens: saved,
         saved_pct,
+        saved_ms_pct,
         spent_ms,
         naive_ms,
-        saved_ms: naive_ms as i64 - spent_ms as i64,
+        saved_ms,
         unmodeled,
         per_repo: repo_totals
             .into_iter()
@@ -238,7 +246,7 @@ pub fn report(ledger: &str) -> Option<GainReport> {
     })
 }
 
-pub fn render(r: &GainReport, rate: f64, ledger: &str) -> String {
+pub fn render(r: &GainReport, _rate: f64, ledger: &str) -> String {
     let mut out = String::new();
     if r.runs == 0 {
         out.push_str(
@@ -248,21 +256,23 @@ pub fn render(r: &GainReport, rate: f64, ledger: &str) -> String {
         return out;
     }
     out.push_str(&format!(
-        "runs          {}\n\
-         spent_tokens  {}\n\
-         naive_tokens  {}\n\
-         saved_tokens  {}\n\
-         spent_ms      {}\n\
-         naive_ms      {}\n\
-         saved_ms      {}\n",
-        r.runs, r.spent_tokens, r.naive_tokens, r.saved_tokens, r.spent_ms, r.naive_ms, r.saved_ms
+        "runs           {}\n\
+         spent_tokens   {}\n\
+         naive_tokens   {}\n\
+         saved_tokens   {} ({}%)\n\
+         spent_ms       {}\n\
+         naive_ms       {}\n\
+         saved_ms       {} ({}%)\n",
+        r.runs,
+        r.spent_tokens,
+        r.naive_tokens,
+        r.saved_tokens,
+        r.saved_pct,
+        r.spent_ms,
+        r.naive_ms,
+        r.saved_ms,
+        r.saved_ms_pct
     ));
-    if r.saved_tokens >= 0 {
-        out.push_str(&format!(
-            "saved          {}% (0 = no savings, 100 = read nothing)\n",
-            r.saved_pct
-        ));
-    }
     out.push_str("\nper-repo (runs, spent_tokens):\n");
     for (repo, n, st) in &r.per_repo {
         out.push_str(&format!("  {:<32} {:>4}  {}\n", repo, n, st));
@@ -274,13 +284,7 @@ pub fn render(r: &GainReport, rate: f64, ledger: &str) -> String {
     if r.saved_tokens < 0 {
         out.push_str("\nnote: savings are negative — the answer cost more than reading those files directly.\n");
         out.push_str("That is expected on small repos/single files (the bundle carries a legend + context).\n");
-        out.push_str("The signal you want is the trend across many runs, not one small one.\n");
     }
-    out.push_str("\ndisclosure: naive=file-set (sum of named files' bytes / 4), read-rate ");
-    out.push_str(&format!(
-        "{} tok/s, unmodeled-runs {} (analyze/batch/quality_delta/edit_check log spent-only)\n",
-        rate, r.unmodeled
-    ));
-    out.push_str(&format!("ledger: {ledger}\n"));
+    out.push_str(&format!("\nledger: {ledger}\n"));
     out
 }
