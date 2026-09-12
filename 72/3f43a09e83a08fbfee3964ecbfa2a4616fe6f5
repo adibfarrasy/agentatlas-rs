@@ -1,0 +1,27 @@
+src/gain.rs
+  s_6375756fc4681c::t_70394f4cbd536d 1-97,127-153,157,162-170,172-173,175-176,178-232
+  s_6375756fc4681c::t_e1571bc01052e1 98-126
+  s_6375756fc4681c::t_10ce438aabf306 154-156,158-161,171,174,177
+test/gaincheck.sh
+  s_6375756fc4681c::t_5a3abb9d5bc1d9 1-42
+src/cli.rs
+  s_6375756fc4681c::t_748771ef417e6a 13-15,33-35,48-53,89,112-113
+src/main.rs
+  s_6375756fc4681c::t_2974c08b760f06 4,27-28,45-52,58-99
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.11",
+  "base_commit_sha": "723f43a09e83a08fbfee3964ecbfa2a4616fe6f5",
+  "prompts": {},
+  "sessions": {
+    "s_6375756fc4681c": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_f6d22c3f1ffe2RNQxUoYBDMJ2x",
+        "model": "deepseek-v4-flash"
+      },
+      "human_author": "Adib Farrasy <adibfarrasy@gmail.com>"
+    }
+  }
+}
