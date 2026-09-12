@@ -16,12 +16,6 @@ enough to hold in your head — and verifies every byte it emits against the rip
 inspired it. The golden outputs in `test/golden/` are committed ripwire output, so the parity claim
 is checkable, not atmospheric.
 
-## Status
-
-**Done.** The core surface is byte-identical to ripwire: the ranked map and the retrieval/change-
-safety verbs (`--grep`, `--callers`/`--callees`, `--uses`, `--for`, `--at`, `--impact`, `--expand`,
-`--from-trace`) — 12/12 parity checks green. Plus `gain`, the token/time savings ledger. Go + Java.
-
 ## Build
 
 ```bash
