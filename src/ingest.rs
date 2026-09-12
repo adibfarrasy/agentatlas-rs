@@ -21,6 +21,8 @@ pub struct Symbol {
     pub end_byte: usize,
     pub scope: String, // enclosing scope (empty = top-level)
     pub cx: u32,       // cyclomatic complexity (1 + decision points); fn/method only
+    pub body_start: usize, // body span (fn/method only; 0 = none)
+    pub body_end: usize,
 }
 
 pub struct Reference {
@@ -116,6 +118,7 @@ fn collect(
                     if def_from_constant && !is_screaming_snake(&name) {
                         continue;
                     }
+                    let (bs, be) = (def_node.start_byte(), def_node.end_byte());
                     defs.push(Symbol {
                         name,
                         kind,
@@ -129,6 +132,8 @@ fn collect(
                         } else {
                             0
                         },
+                        body_start: bs,
+                        body_end: be,
                     });
                 }
             }
@@ -209,6 +214,8 @@ pub fn ingest(files: &[FileEntry], root: &str) -> Ingest {
                     last.kind = s.kind;
                     last.start_byte = s.start_byte;
                     last.end_byte = s.end_byte;
+                    last.body_start = s.body_start;
+                    last.body_end = s.body_end;
                 }
                 continue;
             }

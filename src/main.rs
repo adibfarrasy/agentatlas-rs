@@ -1,4 +1,5 @@
 pub mod cli;
+pub mod forverb;
 pub mod crawl;
 pub mod graph;
 pub mod ingest;
@@ -29,7 +30,10 @@ fn main() {
         cli::Verb::Grep(p) => verbs::grep(&ing, &g, &root, &p),
         cli::Verb::Callers(s) => verbs::callers(&ing, &g, &root, &s),
         cli::Verb::Callees(s) => verbs::callees(&ing, &g, &root, &s),
-        cli::Verb::For(_) => String::new(),
+        cli::Verb::For(q) => {
+            let r = forverb::rank(&ing, &g, &root, &q);
+            forverb::emit(&ing, &g, &root, &q, &r)
+        }
         cli::Verb::Uses(s) => verbs::uses(&ing, &g, &root, &s),
     };
     print!("{}", doc);
