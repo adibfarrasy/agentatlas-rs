@@ -70,7 +70,7 @@ fn escape_xml(s: &str) -> String {
 }
 
 /// builtinLayer: first directory component (case-insensitive) matching the layer table.
-fn builtin_layer(path: &str) -> &'static str {
+pub fn builtin_layer(path: &str) -> &'static str {
     const LAYERS: &[(&str, &str)] = &[
         ("game", "game"), ("gameplay", "game"), ("infra", "infra"), ("infrastructure", "infra"),
         ("infrastucture", "infra"), ("metal", "render"), ("render", "render"), ("renderer", "render"),
@@ -90,7 +90,7 @@ fn builtin_layer(path: &str) -> &'static str {
     ""
 }
 
-fn sym_tag(kind: &str) -> &str {
+pub fn sym_tag(kind: &str) -> &str {
     match kind {
         KIND_FUNCTION => "fn",
         KIND_METHOD => "method",

@@ -27,9 +27,10 @@ fn main() {
             serialize::serialize(&ing, &g, &run, &root)
         }
         cli::Verb::Grep(p) => verbs::grep(&ing, &g, &root, &p),
-        cli::Verb::Callers(_) | cli::Verb::Callees(_) => String::new(),
+        cli::Verb::Callers(s) => verbs::callers(&ing, &g, &root, &s),
+        cli::Verb::Callees(s) => verbs::callees(&ing, &g, &root, &s),
         cli::Verb::For(_) => String::new(),
-        cli::Verb::Uses(_) => String::new(),
+        cli::Verb::Uses(s) => verbs::uses(&ing, &g, &root, &s),
     };
     print!("{}", doc);
 }
