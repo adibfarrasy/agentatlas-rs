@@ -20,6 +20,7 @@ pub struct Symbol {
     pub start_byte: usize,
     pub end_byte: usize,
     pub scope: String, // enclosing scope (empty = top-level)
+    pub cx: u32,       // cyclomatic complexity (1 + decision points); fn/method only
 }
 
 pub struct Reference {
@@ -123,6 +124,11 @@ fn collect(
                         start_byte: def_node.start_byte(),
                         end_byte: def_node.end_byte(),
                         scope: String::new(),
+                        cx: if kind == KIND_FUNCTION || kind == KIND_METHOD {
+                            crate::metrics::complexity_of(def_node)
+                        } else {
+                            0
+                        },
                     });
                 }
             }
