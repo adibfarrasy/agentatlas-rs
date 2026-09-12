@@ -1,0 +1,22 @@
+src/ingest.rs
+  s_6375756fc4681c::t_1ed6d13bd20a5e 76,88
+  s_6375756fc4681c::t_ecbd66e25d3bbb 192-256,259-261
+src/crawl.rs
+  s_6375756fc4681c::t_cc16ff7b1487e7 45-48
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.11",
+  "base_commit_sha": "47b09054bcdf8cce7943535ba278c6f53fa1ae95",
+  "prompts": {},
+  "sessions": {
+    "s_6375756fc4681c": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_f6d22c3f1ffe2RNQxUoYBDMJ2x",
+        "model": "deepseek-v4-flash"
+      },
+      "human_author": "Adib Farrasy <adibfarrasy@gmail.com>"
+    }
+  }
+}
