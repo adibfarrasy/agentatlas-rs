@@ -10,6 +10,9 @@ pub struct Config {
     pub expand: Option<String>,
     pub impact: Option<String>,
     pub from_trace: Option<String>,
+    pub gain: bool,
+    pub no_gain_log: bool,
+    pub gain_log: Option<String>,
     pub top_k: Option<usize>,
     pub legend: Option<String>,
 }
@@ -27,6 +30,9 @@ impl Config {
             expand: None,
             impact: None,
             from_trace: None,
+            gain: false,
+            no_gain_log: false,
+            gain_log: None,
             top_k: None,
             legend: None,
         };
@@ -39,6 +45,12 @@ impl Config {
                 c.callees = Some(v.to_string());
             } else if let Some(v) = a.strip_prefix("--for=") {
                 c.for_query = Some(v.to_string());
+            } else if a == "--gain" || a == "gain" {
+                c.gain = true;
+            } else if a == "--no-gain-log" {
+                c.no_gain_log = true;
+            } else if let Some(v) = a.strip_prefix("--gain-log=") {
+                c.gain_log = Some(v.to_string());
             } else if let Some(v) = a.strip_prefix("--from-trace=") {
                 c.from_trace = Some(v.to_string());
             } else if let Some(v) = a.strip_prefix("--at=") {
@@ -74,6 +86,7 @@ pub enum Verb {
     Expand(String),
     Impact(String),
     FromTrace(String),
+    Gain,
 }
 
 impl Config {
@@ -96,6 +109,8 @@ impl Config {
             Verb::Impact(s.clone())
         } else if let Some(s) = &self.from_trace {
             Verb::FromTrace(s.clone())
+        } else if self.gain {
+            Verb::Gain
         } else {
             Verb::Map
         }
