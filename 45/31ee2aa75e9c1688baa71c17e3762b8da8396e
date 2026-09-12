@@ -1,0 +1,44 @@
+src/graph.rs
+  s_6375756fc4681c::t_0cd08f57701b68 1-134
+src/rank.rs
+  s_6375756fc4681c::t_e47ef03e80c983 1-94
+test/parity.sh
+  s_6375756fc4681c::t_ba73161e229472 1-9,13,15,17-23
+  s_6375756fc4681c::t_9573268b64e9bd 10-12,14,16
+src/ingest.rs
+  s_6375756fc4681c::t_96b0a977394a1c 83
+  s_6375756fc4681c::t_4b8047c82cba7b 129-138
+  s_6375756fc4681c::t_43d7fce25fba70 14
+  s_6375756fc4681c::t_bab551c3d22241 44-46,49-50
+  s_6375756fc4681c::t_c8971a0a4ef3a6 173,191-192
+  s_6375756fc4681c::t_04d6b9c9ed7a11 86-93,95-128
+  s_6375756fc4681c::t_570d72b88f5c8c 1-13,15-43,47-48,51-82,84-85,139-162,176-189,193,198-200,207-223
+  s_6375756fc4681c::t_dfe834bf860a3c 94,163-172,174-175,190,194-197,201-206
+src/crawl.rs
+  s_6375756fc4681c::t_dc945fd6f57127 1-70
+src/serialize.rs
+  s_6375756fc4681c::t_4e5ac8b56bfb3f 1-202
+  s_6375756fc4681c::t_845cac4715b035 203-205
+src/main.rs
+  s_6375756fc4681c::t_abe79e70a92933 1-5,7,11-20
+test/fixtures/golang/main.go
+  s_6375756fc4681c::t_17f7e0421ac0fa 1-16
+test/fixtures/java/Main.java
+  s_6375756fc4681c::t_fe7a5c4c604515 1-13
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.11",
+  "base_commit_sha": "4531ee2aa75e9c1688baa71c17e3762b8da8396e",
+  "prompts": {},
+  "sessions": {
+    "s_6375756fc4681c": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_f6d22c3f1ffe2RNQxUoYBDMJ2x",
+        "model": "deepseek-v4-flash"
+      },
+      "human_author": "Adib Farrasy <adibfarrasy@gmail.com>"
+    }
+  }
+}
