@@ -1,0 +1,38 @@
+src/extraverbs.rs
+  s_6375756fc4681c::t_afbb4ab9c36205 1-12,14-52,54-61,63-82,84-87,160-172,176-186,188,190-191,195,197,199-202,204-205,213
+  s_6375756fc4681c::t_9e9b06cceaf004 207
+  s_6375756fc4681c::t_222b1a122deae9 175,189,192-194,196,198,203,206,208-212
+  s_6375756fc4681c::t_e8b7b4f8a2e9be 13,53,62,83,88-159,173-174,187
+src/cli.rs
+  s_6375756fc4681c::t_b4bb02b626cee1 9-11,25-27,40-45,69-71,86-91
+src/ingest.rs
+  s_6375756fc4681c::t_7f9829f52b7988 20,128
+src/legends.rs
+  s_6375756fc4681c::t_fb3fe26acf9239 10-16
+src/main.rs
+  s_6375756fc4681c::t_19ffdd2197b3cc 2,39-44
+test/golden/verbs/at-main
+  s_6375756fc4681c::t_a53d57158be672 1
+test/golden/verbs/expand-main2
+  s_6375756fc4681c::t_9414e3a6977c0d 1-17
+test/golden/verbs/impact-point
+  s_6375756fc4681c::t_26449bea93e2dc 1
+test/parity.sh
+  s_6375756fc4681c::t_92691b9b40ccaf 37-39
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.11",
+  "base_commit_sha": "4c76ae783d49e5649e9132359fd75483e742f80e",
+  "prompts": {},
+  "sessions": {
+    "s_6375756fc4681c": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_f6d22c3f1ffe2RNQxUoYBDMJ2x",
+        "model": "deepseek-v4-flash"
+      },
+      "human_author": "Adib Farrasy <adibfarrasy@gmail.com>"
+    }
+  }
+}
