@@ -1,0 +1,23 @@
+.github/workflows/release.yml
+  s_6375756fc4681c::t_d3b7df987929be 33-37,50,57,71-75,78-88,96-98
+Cargo.lock
+  s_6375756fc4681c::t_f7473dc40af9e8 7
+Cargo.toml
+  s_6375756fc4681c::t_5561c87d15b473 3
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.11",
+  "base_commit_sha": "fcf76c302dbd6cd6eec813aa17836a8182a76dba",
+  "prompts": {},
+  "sessions": {
+    "s_6375756fc4681c": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_f6d22c3f1ffe2RNQxUoYBDMJ2x",
+        "model": "deepseek-v4-flash"
+      },
+      "human_author": "Adib Farrasy <adibfarrasy@gmail.com>"
+    }
+  }
+}
