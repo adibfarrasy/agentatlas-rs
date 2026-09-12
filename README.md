@@ -1,10 +1,10 @@
-# agentatlas.rs
+# agentatlas-rs
 
 A deterministic codebase index for coding agents. Crawl → call graph → PageRank → one minified XML
 answer: ranked symbols, callers, blast radius, tests to run. Offline, one binary, zero runtime
 dependencies, every uncertainty labelled.
 
-**agentatlas.rs is a from-scratch Rust rewrite of [ripwire](https://github.com/redhat-et/ripwire).**
+**agentatlas-rs is a from-scratch Rust rewrite of [ripwire](https://github.com/redhat-et/ripwire).**
 It keeps ripwire's core idea and its honesty contracts, re-implemented in a language a solo
 maintainer can actually read. See [CREDITS.md](CREDITS.md).
 
@@ -22,13 +22,16 @@ One line, no compiler required (a prebuilt release is used when one exists; othe
 from source, which needs Rust):
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/adibfarrasy/agentatlas.rs/refs/heads/main/scripts/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/adibfarrasy/agentatlas-rs/refs/heads/main/scripts/install.sh | bash
 export PATH="$HOME/.local/bin:$PATH"
 ```
 
 It installs the binary, then asks whether to copy the `agentatlas` skill into the coding agents
 it finds on the machine — Claude Code, Cursor, Codex, opencode — so they learn to reach for
-`agentatlas` before blind grep + whole-file reads. One-time question; answer y once.
+`agentatlas` before blind grep + whole-file reads. For the hook-capable agents (Claude Code,
+opencode) it also installs a pre-tool-use hook that nudges them to run `agentatlas` before
+retrieval tools (Claude Code: before each Bash/Read/Grep/Glob call; opencode: at the start of
+each session). One-time question; answer y once.
 
 ## Build
 

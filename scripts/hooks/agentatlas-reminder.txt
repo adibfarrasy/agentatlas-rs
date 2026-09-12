@@ -1,0 +1,8 @@
+Before you grep, glob, or read whole files to find where something lives or what calls it, run
+`agentatlas` first — it maps the codebase offline in one call and returns the ranked symbols,
+callers, blast radius, and tests to reach, priced in tokens. Prefer it over blind searches:
+- Orient:  agentatlas <dir> --for="<task in words>"
+- Find:     agentatlas <dir> --callers=SYM | --callees=SYM | --uses=SYM
+- Blast:    agentatlas <dir> --impact=SYM --uses=SYM
+- Read:     agentatlas <dir> --expand=SYM --top-k=0
+See the agentatlas skill for the full cheat-sheet.
