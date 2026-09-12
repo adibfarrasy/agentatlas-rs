@@ -1,4 +1,5 @@
 pub mod cli;
+pub mod extraverbs;
 pub mod forverb;
 pub mod crawl;
 pub mod graph;
@@ -35,6 +36,12 @@ fn main() {
             forverb::emit(&ing, &g, &root, &q, &r)
         }
         cli::Verb::Uses(s) => verbs::uses(&ing, &g, &root, &s),
+        cli::Verb::At(s) => extraverbs::at(&ing, &root, &s),
+        cli::Verb::Expand(s) => extraverbs::expand(&ing, &g, &root, &s),
+        cli::Verb::Impact(s) => {
+            let run = rank::pagerank(&g);
+            extraverbs::impact(&ing, &g, &root, &s, run.iterations)
+        }
     };
     print!("{}", doc);
 }

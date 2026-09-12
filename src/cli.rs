@@ -6,6 +6,9 @@ pub struct Config {
     pub callees: Option<String>,
     pub for_query: Option<String>,
     pub uses: Option<String>,
+    pub at: Option<String>,
+    pub expand: Option<String>,
+    pub impact: Option<String>,
     pub top_k: Option<usize>,
     pub legend: Option<String>,
 }
@@ -19,6 +22,9 @@ impl Config {
             callees: None,
             for_query: None,
             uses: None,
+            at: None,
+            expand: None,
+            impact: None,
             top_k: None,
             legend: None,
         };
@@ -31,6 +37,12 @@ impl Config {
                 c.callees = Some(v.to_string());
             } else if let Some(v) = a.strip_prefix("--for=") {
                 c.for_query = Some(v.to_string());
+            } else if let Some(v) = a.strip_prefix("--at=") {
+                c.at = Some(v.to_string());
+            } else if let Some(v) = a.strip_prefix("--expand=") {
+                c.expand = Some(v.to_string());
+            } else if let Some(v) = a.strip_prefix("--impact=") {
+                c.impact = Some(v.to_string());
             } else if let Some(v) = a.strip_prefix("--uses=") {
                 c.uses = Some(v.to_string());
             } else if let Some(v) = a.strip_prefix("--top-k=") {
@@ -54,6 +66,9 @@ pub enum Verb {
     Callees(String),
     For(String),
     Uses(String),
+    At(String),
+    Expand(String),
+    Impact(String),
 }
 
 impl Config {
@@ -68,6 +83,12 @@ impl Config {
             Verb::For(q.clone())
         } else if let Some(s) = &self.uses {
             Verb::Uses(s.clone())
+        } else if let Some(s) = &self.at {
+            Verb::At(s.clone())
+        } else if let Some(s) = &self.expand {
+            Verb::Expand(s.clone())
+        } else if let Some(s) = &self.impact {
+            Verb::Impact(s.clone())
         } else {
             Verb::Map
         }

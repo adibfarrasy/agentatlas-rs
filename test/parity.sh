@@ -34,5 +34,8 @@ check callers-dist golang --callers=Dist
 check callees-main golang --callees=main
 check uses-point golang --uses=Point
 check for-find golang --for="find the point distance"
+check at-main golang --at=main.go:13
+check impact-point golang --impact=Point
+check expand-main2 golang --expand=main.go:main
 
 exit "$fail"

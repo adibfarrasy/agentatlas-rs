@@ -1,0 +1,213 @@
+use crate::graph::Graph;
+use crate::ingest::{Ingest, Symbol, KIND_METHOD, KIND_FUNCTION};
+use crate::legends::{AT_LEGEND, IMPACT_LEGEND};
+
+fn esc(s: &str) -> String {
+    s.replace('&', "&amp;").replace('<', "&lt;").replace('>', "&gt;").replace('"', "&quot;").replace('\'', "&apos;")
+}
+
+fn sym_tag(kind: &str) -> &str {
+    crate::serialize::sym_tag(kind)
+}
+
+/// Resolve a selector like "file:name" or "name" to symbol ids.
+fn resolve(ing: &Ingest, sel: &str) -> Vec<usize> {
+    let mut out = Vec::new();
+    if let Some((f, name)) = sel.rsplit_once(':') {
+        if ing.files.iter().any(|p| p == f || p.ends_with(&format!("/{f}"))) {
+            for (i, s) in ing.symbols.iter().enumerate() {
+                if s.name == name && (ing.files[s.file_id] == f || ing.files[s.file_id].ends_with(&format!("/{f}"))) {
+                    out.push(i);
+                }
+            }
+            if !out.is_empty() {
+                return out;
+            }
+        }
+    }
+    for (i, s) in ing.symbols.iter().enumerate() {
+        if s.name == sel {
+            out.push(i);
+        }
+    }
+    out
+}
+
+pub fn at(ing: &Ingest, root: &str, seed: &str) -> String {
+    let (f, line_s) = seed.rsplit_once(':').unwrap_or((seed, ""));
+    let line: u32 = line_s.parse().unwrap_or(0);
+    let file_id = ing.files.iter().position(|p| p == f).unwrap_or(0);
+    let mut out = String::new();
+    out.push_str(AT_LEGEND);
+    let syms: Vec<&Symbol> = ing
+        .symbols
+        .iter()
+        .filter(|s| s.file_id == file_id && s.line <= line && s.end_line >= line)
+        .collect();
+    if syms.is_empty() {
+        return out;
+    }
+    let innermost = syms.iter().max_by_key(|s| s.line).unwrap();
+    out.push_str(&format!(
+        "<at p=\"{}\" l=\"{}\" sym=\"{}\" chain=\"{}\" root=\"{}\">",
+        esc(f), line, esc(&innermost.name), 1, esc(root)
+    ));
+    out.push_str(&format!(
+        "<s n=\"{}\" t=\"{}\" l=\"{}\" el=\"{}\"/>",
+        esc(&innermost.name),
+        sym_tag(innermost.kind),
+        innermost.line,
+        innermost.end_line
+    ));
+    out.push_str("</at>\n");
+    out
+}
+
+pub fn impact(ing: &Ingest, g: &Graph, root: &str, sel: &str, pr_iters: u32) -> String {
+    let mut out = String::new();
+    out.push_str(IMPACT_LEGEND);
+    let defs = resolve(ing, sel);
+    let defs_count = defs.len();
+    let mut reached: std::collections::HashSet<usize> = std::collections::HashSet::new();
+    let mut stack: Vec<usize> = defs.clone();
+    while let Some(cur) = stack.pop() {
+        for (from, to, _) in &g.out_edges {
+            if *to == cur && !reached.contains(from) && !defs.contains(from) {
+                reached.insert(*from);
+                stack.push(*from);
+            }
+        }
+    }
+    out.push_str(&format!(
+        "<impact of=\"{}\" defs=\"{}\" reaches=\"{}\" importers=\"0\" shown_importers=\"0\" importers_capped=\"0\" radius_tested=\"0\" radius_untested=\"0\" root=\"{}\" shown=\"0\" capped=\"0\" graph_ambiguous=\"0\" graph_unresolved=\"0\" counts_floor=\"1\" pr_iters=\"{}\" next=\"--safe-delete={}\"></impact>",
+        esc(sel), defs_count, reached.len(), esc(root), pr_iters, esc(sel)
+    ));
+    out
+}
+
+/// Render the `<bodies>` block the bundle measurement prices (the --expand --top-k=0 form).
+fn render_bodies(ing: &Ingest, g: &Graph, root: &str, id: usize) -> String {
+    let s = &ing.symbols[id];
+    let rel = &ing.files[s.file_id];
+    let bytes = std::fs::read(format!("{root}/{rel}")).unwrap_or_default();
+    let body = if s.end_byte <= bytes.len() && s.start_byte <= s.end_byte {
+        String::from_utf8_lossy(&bytes[s.start_byte..s.end_byte]).into_owned()
+    } else {
+        String::new()
+    };
+    let mut sibs: Vec<&str> = ing
+        .symbols
+        .iter()
+        .filter(|x| x.file_id == s.file_id && x.name != s.name)
+        .map(|x| x.name.as_str())
+        .collect();
+    let sibs_total = sibs.len();
+    sibs.truncate(8);
+    let mut incs: Vec<String> = Vec::new();
+    if rel.ends_with(".go") {
+        let text = String::from_utf8_lossy(&bytes).into_owned();
+        for line in text.lines() {
+            let t = line.trim();
+            if t.starts_with("import ") {
+                let rest = t["import ".len()..].trim();
+                let inner = rest.trim_start_matches('(').trim_end_matches(')').trim();
+                for part in inner.split_whitespace() {
+                    if part.starts_with('"') && part.ends_with('"') {
+                        incs.push(part.to_string());
+                    }
+                }
+            }
+        }
+    }
+    let inc_total = incs.len();
+    let mut b = format!(
+        "<b t=\"{}\" l=\"{}\" p=\"{}\" n=\"{}\"",
+        crate::serialize::sym_tag(s.kind),
+        s.line,
+        esc(rel),
+        esc(&s.name)
+    );
+    if !sibs.is_empty() {
+        b.push_str(&format!(" sibs=\"{}\"", esc(&sibs.join(","))));
+    }
+    b.push_str(&format!(" sibs_total=\"{}\"", sibs_total));
+    if !incs.is_empty() {
+        b.push_str(&format!(" inc=\"{}\"", esc(&incs.join(","))));
+    }
+    b.push_str(&format!(" inc_total=\"{}\"", inc_total));
+    b.push_str("><![CDATA[");
+    b.push_str(&body);
+    b.push_str("]]>");
+    let callees: Vec<usize> = g.out_edges.iter().filter(|(from, _, _)| *from == id).map(|(_, to, _)| *to).collect();
+    if !callees.is_empty() {
+        b.push_str(&format!("<calls total=\"{}\"", callees.len()));
+        b.push_str(">");
+        for &to in &callees {
+            let cs = &ing.symbols[to];
+            b.push_str(&format!(
+                "<c n=\"{}\" l=\"{}\">{};</c>",
+                esc(&cs.name),
+                cs.line,
+                esc(&crate::forverb::signature(ing, root, to))
+            ));
+        }
+        b.push_str("</calls>");
+    }
+    b.push_str("</b>");
+    format!("<bodies shown=\"1\" total=\"1\" capped=\"0\">{}</bodies>", b)
+}
+
+/// --expand: whole-file mode when the file is smaller than the modeled bundle.
+pub fn expand(ing: &Ingest, g: &Graph, root: &str, sel: &str) -> String {
+    let defs = resolve(ing, sel);
+    if defs.is_empty() {
+        eprintln!("ripwire: --expand={sel} matched no symbol");
+        return String::new();
+    }
+    let id = defs[0];
+    let s = &ing.symbols[id];
+    let rel = &ing.files[s.file_id];
+    let bytes = std::fs::read(format!("{root}/{rel}")).unwrap_or_default();
+    let raw = bytes.len();
+
+    let bodies = render_bodies(ing, g, root, id);
+    let bodies_doc = crate::legends::BODIES_LEGEND.len() + bodies.len();
+    let bundle = 5 + 30 + 17 + bodies_doc + 6;
+
+    let mode;
+    let reason;
+    if raw < bundle {
+        mode = "whole-file";
+        reason = format!("file {}B &lt; bundle {}B", raw, bundle);
+    } else {
+        mode = "bundle";
+        reason = format!("bundle {}B &lt;= file {}B", bundle, raw);
+    }
+
+    let src_open = format!("<src p=\"{}\" sym=\"{}\">", esc(rel), esc(&format!("{}:{}", s.name, s.line)));
+    let header = format!(
+        "<ctx root=\"{}\" topk_default=\"0\" mode=\"{}\" reason=\"{}\">",
+        esc(root), mode, reason
+    );
+    // est: the whole document (ctx + src + cdata + closes) priced at the body rate, converged
+    // over the est attr's own digits (pricedRootAttr semantics).
+    let fixed_bytes = header.len() + src_open.len() + 9 + raw + 9 + 6;
+    let mut est = 0usize;
+    let mut est_attr = format!(" est_tokens=\"{}\"", est);
+    for _ in 0..4 {
+        let next = ((fixed_bytes + est_attr.len()) as f64 / 3.80 + 0.5) as usize;
+        if next == est {
+            break;
+        }
+        est = next;
+        est_attr = format!(" est_tokens=\"{}\"", est);
+    }
+    let cdata = String::from_utf8_lossy(&bytes);
+    format!(
+        "{} est_tokens=\"{}\">{}<![CDATA[{}]]></src></ctx>",
+        header.trim_end_matches('>'),
+        est,
+        src_open,
+        cdata
+    )
+}

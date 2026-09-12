@@ -17,6 +17,7 @@ pub struct Symbol {
     pub kind: &'static str,
     pub file_id: usize,
     pub line: u32,
+    pub end_line: u32,
     pub start_byte: usize,
     pub end_byte: usize,
     pub scope: String, // enclosing scope (empty = top-level)
@@ -124,6 +125,7 @@ fn collect(
                         kind,
                         file_id,
                         line: (def_node.start_position().row + 1) as u32,
+                        end_line: (def_node.end_position().row + 1) as u32,
                         start_byte: def_node.start_byte(),
                         end_byte: def_node.end_byte(),
                         scope: String::new(),

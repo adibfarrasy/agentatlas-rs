@@ -1,0 +1,17 @@
+<ctx root="/tmp/golden-root/golang" topk_default="0" mode="whole-file" reason="file 167B &lt; bundle 1351B" est_tokens="91"><src p="main.go" sym="main:13"><![CDATA[package main
+
+import "fmt"
+
+type Point struct {
+	X, Y int
+}
+
+func (p Point) Dist() int {
+	return p.X + p.Y
+}
+
+func main() {
+	p := Point{1, 2}
+	fmt.Println(p.Dist())
+}
+]]></src></ctx>
