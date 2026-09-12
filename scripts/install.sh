@@ -75,8 +75,8 @@ install_binary() {
 install_skill() {
     # fetch the canonical SKILL.md from the repo
     for skillUrl in \
-        "https://raw.githubusercontent.com/${repo}/main/skills/agentatlas/SKILL.md" \
-        "https://raw.githubusercontent.com/${repo}/refs/heads/main/skills/agentatlas/SKILL.md"
+        "https://raw.githubusercontent.com/${repo}/refs/heads/main/skills/agentatlas/SKILL.md" \
+        "https://raw.githubusercontent.com/${repo}/main/skills/agentatlas/SKILL.md"
     do
         if skillText="$( curl -fsSL "$skillUrl" 2>/dev/null )"; then
             break
@@ -102,6 +102,7 @@ install_skill() {
     if [ "$installed" = "0" ]; then
         echo "install.sh: no coding-agent skill dirs found — the skill is at skills/agentatlas/SKILL.md in the repo; copy it manually when you install an agent"
     fi
+    [ "$installed" != "0" ]
 }
 
 install_binary
@@ -117,12 +118,14 @@ else
     read -r answer < /dev/tty || answer=""
 fi
 case "$answer" in
-    y|Y|yes|YES) install_skill ;;
-    *) echo "install.sh: skills skipped" ;;
+    y|Y|yes|YES) if install_skill; then skills_installed=1; else skills_installed=0; fi ;;
+    *) echo "install.sh: skills skipped"; skills_installed=0 ;;
 esac
 
 echo
 echo "agentatlas installed. Make sure $binDir is on your PATH:"
 echo "  export PATH=\"$binDir:\$PATH\""
 echo "Try it:  agentatlas --help"
-echo "The skill now teaches Claude / Cursor / Codex / opencode to reach for agentatlas before grep."
+if [ "${skills_installed:-0}" = "1" ]; then
+    echo "The skill now teaches Claude / Cursor / Codex / opencode to reach for agentatlas before grep."
+fi

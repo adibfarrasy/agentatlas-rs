@@ -22,7 +22,7 @@ One line, no compiler required (a prebuilt release is used when one exists; othe
 from source, which needs Rust):
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/adibfarrasy/agentatlas.rs/main/scripts/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/adibfarrasy/agentatlas.rs/refs/heads/main/scripts/install.sh | bash
 export PATH="$HOME/.local/bin:$PATH"
 ```
 
