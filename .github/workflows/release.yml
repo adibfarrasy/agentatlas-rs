@@ -30,6 +30,9 @@ jobs:
           - os: macos-latest
             asset_os: macos
             asset_arch: x64
+          - os: windows-latest
+            asset_os: windows
+            asset_arch: x64
     runs-on: ${{ matrix.os }}
     outputs:
       version: ${{ steps.ver.outputs.version }}
@@ -64,10 +67,16 @@ jobs:
 
       - name: Package asset
         if: steps.exists.outputs.exists == 'false'
+        shell: bash
         run: |
           VERSION="${{ steps.ver.outputs.version }}"
           NAME="agentatlas-${VERSION}-${{ matrix.asset_os }}-${{ matrix.asset_arch }}"
-          tar -czf "${NAME}.tar.gz" -C target/release agentatlas
+          if [ "${{ matrix.asset_os }}" = "windows" ]; then
+            cp target/release/agentatlas.exe /tmp/agentatlas
+            tar -czf "${NAME}.tar.gz" -C /tmp agentatlas
+          else
+            tar -czf "${NAME}.tar.gz" -C target/release agentatlas
+          fi
           echo "asset=${NAME}.tar.gz" >> "$GITHUB_OUTPUT"
 
       - name: Upload asset
