@@ -251,19 +251,18 @@ pub fn render(r: &GainReport, rate: f64, ledger: &str) -> String {
         "runs          {}\n\
          spent_tokens  {}\n\
          naive_tokens  {}\n\
-         saved_tokens  {} ({}%)\n\
+         saved_tokens  {}\n\
          spent_ms      {}\n\
          naive_ms      {}\n\
          saved_ms      {}\n",
-        r.runs,
-        r.spent_tokens,
-        r.naive_tokens,
-        r.saved_tokens,
-        r.saved_pct,
-        r.spent_ms,
-        r.naive_ms,
-        r.saved_ms
+        r.runs, r.spent_tokens, r.naive_tokens, r.saved_tokens, r.spent_ms, r.naive_ms, r.saved_ms
     ));
+    if r.saved_tokens >= 0 {
+        out.push_str(&format!(
+            "saved          {}% (0 = no savings, 100 = read nothing)\n",
+            r.saved_pct
+        ));
+    }
     out.push_str("\nper-repo (runs, spent_tokens):\n");
     for (repo, n, st) in &r.per_repo {
         out.push_str(&format!("  {:<32} {:>4}  {}\n", repo, n, st));
@@ -271,6 +270,11 @@ pub fn render(r: &GainReport, rate: f64, ledger: &str) -> String {
     out.push_str("\nper-verb (runs, spent_tokens):\n");
     for (verb, n, st) in &r.per_verb {
         out.push_str(&format!("  {:<24} {:>4}  {}\n", verb, n, st));
+    }
+    if r.saved_tokens < 0 {
+        out.push_str("\nnote: savings are negative — the answer cost more than reading those files directly.\n");
+        out.push_str("That is expected on small repos/single files (the bundle carries a legend + context).\n");
+        out.push_str("The signal you want is the trend across many runs, not one small one.\n");
     }
     out.push_str("\ndisclosure: naive=file-set (sum of named files' bytes / 4), read-rate ");
     out.push_str(&format!(

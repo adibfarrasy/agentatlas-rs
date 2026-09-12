@@ -14,6 +14,7 @@ pub mod verbs;
 use std::path::Path;
 
 fn main() {
+    let run_started = std::time::Instant::now();
     let args: Vec<String> = std::env::args().collect();
     if args
         .iter()
@@ -23,6 +24,20 @@ fn main() {
         return;
     }
     let cfg = cli::Config::parse(&args[1..]);
+
+    // gain reads the ledger — it does not crawl or rank, so it runs before the pipeline.
+    if matches!(cfg.verb(), cli::Verb::Gain) {
+        let ledger = cfg.gain_log.clone().unwrap_or_else(gain::ledger_path);
+        let rate = gain::read_rate();
+        match gain::report(&ledger) {
+            Some(r) => print!("{}", gain::render(&r, rate, &ledger)),
+            None => print!(
+                "gain: nothing recorded yet at {ledger}\nRun any retrieval verb first — e.g. `agentatlas <dir> --for=\"your task\"` — and it logs a row here.\n"
+            ),
+        }
+        return;
+    }
+
     let root = cfg.root.clone();
     let root_path = Path::new(&root);
 
@@ -30,8 +45,6 @@ fn main() {
     let ing = ingest::ingest(&files, &root);
     let g = graph::build(&ing);
 
-    let verb_kind = std::env::args().nth(1).unwrap_or_default();
-    let _ = verb_kind;
     let doc = match cfg.verb() {
         cli::Verb::Map => {
             let run = rank::pagerank(&g);
@@ -48,21 +61,13 @@ fn main() {
         cli::Verb::At(s) => extraverbs::at(&ing, &root, &s),
         cli::Verb::Expand(s) => extraverbs::expand(&ing, &g, &root, &s),
         cli::Verb::FromTrace(s) => extraverbs::from_trace(&ing, &g, &root, &s),
-        cli::Verb::Gain => {
-            let ledger = cfg.gain_log.clone().unwrap_or_else(gain::ledger_path);
-            let rate = gain::read_rate();
-            match gain::report(&ledger) {
-                Some(r) => gain::render(&r, rate, &ledger),
-                None => format!("gain: no ledger at {ledger} — run a retrieval verb (e.g. --for) and it logs here.\n"),
-            }
-        }
         cli::Verb::Impact(s) => {
             let run = rank::pagerank(&g);
             extraverbs::impact(&ing, &g, &root, &s, run.iterations)
         }
+        cli::Verb::Gain => unreachable!(), // short-circuited above
     };
-    if !cfg.no_gain_log && !matches!(cfg.verb(), cli::Verb::Gain) {
-        let start = std::time::Instant::now();
+    if !cfg.no_gain_log {
         let ledger = cfg.gain_log.clone().unwrap_or_else(gain::ledger_path);
         let verb_name = match cfg.verb() {
             cli::Verb::Grep(_) => "grep",
@@ -99,7 +104,7 @@ fn main() {
             repo: root.clone(),
             verb: verb_name.to_string(),
             spent_tokens,
-            spent_ms: start.elapsed().as_millis() as u64,
+            spent_ms: run_started.elapsed().as_millis() as u64,
             naive_tokens: nt,
             naive_ms: nm,
             model: model.to_string(),
