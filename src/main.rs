@@ -1,29 +1,21 @@
-use tree_sitter::{Language, Parser};
+pub mod crawl;
+pub mod graph;
+pub mod ingest;
+pub mod rank;
+pub mod serialize;
 
-extern "C" {
-    fn tree_sitter_go() -> *const ();
-    fn tree_sitter_java() -> *const ();
-}
+use std::path::Path;
 
-fn probe(name: &str, lang_fn: unsafe extern "C" fn() -> *const (), src: &str) {
-    let lang = Language::new(unsafe { tree_sitter_language::LanguageFn::from_raw(lang_fn) });
-    println!("{name}: ABI version = {}", lang.version());
-    let mut parser = Parser::new();
-    match parser.set_language(&lang) {
-        Ok(()) => {
-            let tree = parser.parse(src, None).expect("parse");
-            let root = tree.root_node();
-            println!("{name}: ABI ok, root kind = {:?}", root.kind());
-        }
-        Err(e) => println!("{name}: set_language FAILED: {e}"),
-    }
-}
 
 fn main() {
-    probe("go", tree_sitter_go, "package main\nfunc main() {}\n");
-    probe(
-        "java",
-        tree_sitter_java,
-        "class Main { public static void main(String[] a) {} }\n",
-    );
+    let args: Vec<String> = std::env::args().collect();
+    let root = if args.len() > 1 { args[1].as_str() } else { "." };
+    let root_path = Path::new(root);
+
+    let files = crawl::crawl(root_path);
+    let ing = ingest::ingest(&files, root);
+    let g = graph::build(&ing);
+    let run = rank::pagerank(&g);
+    let doc = serialize::serialize(&ing, &g, &run, root);
+    print!("{}", doc);
 }
