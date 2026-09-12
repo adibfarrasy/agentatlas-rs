@@ -17,13 +17,13 @@ pub struct GainRow {
 fn xdg_data_home() -> String {
     if let Ok(d) = std::env::var("XDG_DATA_HOME") {
         if !d.is_empty() {
-            return format!("{}/ripwire", d.trim_end_matches('/'));
+            return format!("{}/agentatlas", d.trim_end_matches('/'));
         }
     }
     if let Ok(h) = std::env::var("HOME") {
-        return format!("{}/.local/share/ripwire", h);
+        return format!("{}/.local/share/agentatlas", h);
     }
-    ".ripwire".to_string()
+    ".agentatlas".to_string()
 }
 
 pub fn ledger_path() -> String {

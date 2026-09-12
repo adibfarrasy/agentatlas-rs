@@ -39,7 +39,7 @@ test/gaincheck.sh         # the gain ledger gate
 
 ## Track your savings
 
-Every retrieval run appends one row to a JSONL ledger at `$XDG_DATA_HOME/ripwire/gain.jsonl`
+Every retrieval run appends one row to a JSONL ledger at `$XDG_DATA_HOME/agentatlas/gain.jsonl`
 (override `--gain-log=FILE`, disable `--no-gain-log`). `gain` rolls it up — tokens spent vs the
 naive read those files would have cost, plus time:
 
