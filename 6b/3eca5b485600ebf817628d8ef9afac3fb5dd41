@@ -1,0 +1,21 @@
+scripts/install.sh
+  s_6375756fc4681c::t_06d77cda320326 1-122
+skills/agentatlas/SKILL.md
+  s_6375756fc4681c::t_5baf4963cff6e9 1-48
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.11",
+  "base_commit_sha": "6b3eca5b485600ebf817628d8ef9afac3fb5dd41",
+  "prompts": {},
+  "sessions": {
+    "s_6375756fc4681c": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_f6d22c3f1ffe2RNQxUoYBDMJ2x",
+        "model": "deepseek-v4-flash"
+      },
+      "human_author": "Adib Farrasy <adibfarrasy@gmail.com>"
+    }
+  }
+}
