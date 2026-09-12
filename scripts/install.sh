@@ -109,7 +109,13 @@ install_binary
 # ── 3. the skills: one-time choice, asked once ──────────────────────────────────────────────────────────
 printf '%s\n' "Install the agentatlas skill into your coding agents (Claude Code, Cursor, Codex, opencode)?" 
 printf '%s\n' "It teaches them to reach for agentatlas before blind grep + whole-file reads. [y/N]"
-read -r answer || exit 1
+# read from the terminal, not stdin: under `curl | bash` stdin is the pipe (script bytes),
+# and a `read` that consumes it leaves bash parsing a mangled tail.
+if [ -t 0 ]; then
+    read -r answer || answer=""
+else
+    read -r answer < /dev/tty || answer=""
+fi
 case "$answer" in
     y|Y|yes|YES) install_skill ;;
     *) echo "install.sh: skills skipped" ;;
