@@ -28,7 +28,7 @@ from the reference build, so the byte-parity claim is checkable.
    does not write C++ can keep. Rust's module system, `cargo`, `cargo test`, and memory safety make
    the same design hold-in-your-head-sized.
 2. **The long tail.** Most of ripwire's surface (quality lenses, naming lenses, cache-lint rules,
-   eleven long-tail verbs) is not the essence. agentatlas rebuilds only the 18-verb core.
+   eleven long-tail verbs) is not the essence. agentatlas rebuilds only the retrieval/change-safety core.
 3. **Language scope.** The use cases that matter here are Go and Java. ripwire ships 24 grammars;
    agentatlas ships two and keeps the grammar table extensible.
 4. **A fresh history.** A fork would carry 2,485 commits of an AI-authored development history.

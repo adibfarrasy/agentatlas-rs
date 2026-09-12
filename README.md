@@ -8,26 +8,19 @@ dependencies, every uncertainty labelled.
 It keeps ripwire's core idea and its honesty contracts, re-implemented in a language a solo
 maintainer can actually read. See [CREDITS.md](CREDITS.md).
 
-## Why this exists
+## Why
 
-ripwire is a genuinely good tool with a real insight — but it is ~168K lines of C++23 wrapped in a
-build system, a 400-gate test bureaucracy, and a documentation tower that mostly exists to justify
-its own claims. For a single maintainer who does not write C++ day-to-day, that is unreadable. This
-project exists to answer one question:
-
-> Can the *idea* — an offline, deterministic, token-priced codebase map for coding agents — be
-> rebuilt in Rust, small enough to hold in your head, and kept byte-identical to the original where
-> it matters?
-
-The answer this repo is working toward is **yes**. Everything agentatlas emits is verified
-byte-for-byte against the ripwire binary that inspired it (the golden outputs in `test/golden/` are
-committed ripwire output, attributed, so the parity claim is checkable rather than atmospheric).
+ripwire's idea is good; its ~168K lines of C++23 and its gate bureaucracy are not something a single
+maintainer who does not write C++ day-to-day can keep. This repo rebuilds the idea in Rust, small
+enough to hold in your head — and verifies every byte it emits against the ripwire binary that
+inspired it. The golden outputs in `test/golden/` are committed ripwire output, so the parity claim
+is checkable, not atmospheric.
 
 ## Status
 
-Foundation proven: vendored `tree-sitter-go` and `tree-sitter-java` compile and parse (ABI 14),
-oracle outputs captured, pipeline under construction. Go + Java only — the languages that matter
-here. See `docs/2026-09-12-rust-rewrite.md` for the milestone plan.
+**Done.** The core surface is byte-identical to ripwire: the ranked map and the retrieval/change-
+safety verbs (`--grep`, `--callers`/`--callees`, `--uses`, `--for`, `--at`, `--impact`, `--expand`,
+`--from-trace`) — 12/12 parity checks green. Plus `gain`, the token/time savings ledger. Go + Java.
 
 ## Build
 
@@ -46,9 +39,9 @@ test/gaincheck.sh         # the gain ledger gate
 
 ## Track your savings
 
-Every retrieval run (`--for`, `--grep`, `--callers`, ...) appends one row to a JSONL ledger at
-`$XDG_DATA_HOME/ripwire/gain.jsonl` (override `--gain-log=FILE`, disable `--no-gain-log`). `gain`
-rolls it up — tokens spent vs the naive read those files would have cost, plus time:
+Every retrieval run appends one row to a JSONL ledger at `$XDG_DATA_HOME/ripwire/gain.jsonl`
+(override `--gain-log=FILE`, disable `--no-gain-log`). `gain` rolls it up — tokens spent vs the
+naive read those files would have cost, plus time:
 
 ```bash
 agentatlas --for="find the point distance"   # logs a row

@@ -35,9 +35,9 @@ pub fn pagerank(g: &Graph) -> RankRun {
         while block < n {
             let end = (block + REDUCTION_BLOCK).min(n);
             let mut partial = 0.0;
-            for i in block..end {
-                if g.w_out_deg[i] <= 0.0 {
-                    partial += current[i];
+            for (i, w) in g.w_out_deg[block..end].iter().enumerate() {
+                if *w <= 0.0 {
+                    partial += current[block + i];
                 }
             }
             dangling += partial;

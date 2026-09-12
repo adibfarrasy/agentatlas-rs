@@ -1,5 +1,5 @@
 use crate::graph::Graph;
-use crate::ingest::Ingest;
+use crate::ingest::{Ingest, Symbol};
 use crate::legends::{AT_LEGEND, IMPACT_LEGEND};
 
 fn esc(s: &str) -> String {
@@ -146,7 +146,7 @@ fn render_bodies_opt(
             for line in text.lines() {
                 let t = line.trim();
                 if t.starts_with("import ") {
-                    let rest = t["import ".len()..].trim();
+                    let rest = t.strip_prefix("import ").unwrap_or(t).trim();
                     let inner = rest.trim_start_matches('(').trim_end_matches(')').trim();
                     for part in inner.split_whitespace() {
                         if part.starts_with('"') && part.ends_with('"') {
@@ -173,7 +173,7 @@ fn render_bodies_opt(
         .collect();
     if !callees.is_empty() {
         b.push_str(&format!("<calls total=\"{}\"", callees.len()));
-        b.push_str(">");
+        b.push('>');
         for &to in &callees {
             let cs = &ing.symbols[to];
             b.push_str(&format!(

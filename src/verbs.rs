@@ -10,7 +10,7 @@ pub fn escape_xml(s: &str) -> String {
 }
 
 /// Innermost symbol whose byte span contains `byte` in `file_id`.
-fn enclosing<'a>(ing: &'a Ingest, file_id: usize, byte: usize) -> Option<&'a Symbol> {
+fn enclosing(ing: &Ingest, file_id: usize, byte: usize) -> Option<&Symbol> {
     ing.symbols
         .iter()
         .filter(|s| s.file_id == file_id && s.start_byte <= byte && s.end_byte >= byte)
@@ -21,12 +21,12 @@ fn enclosing<'a>(ing: &'a Ingest, file_id: usize, byte: usize) -> Option<&'a Sym
 fn fan_in(g: &Graph) -> Vec<u32> {
     let n = g.row_offsets.len() - 1;
     let mut out = vec![0u32; n];
-    for t in 0..n {
+    for (t, slot) in out.iter_mut().enumerate() {
         let mut seen = std::collections::BTreeSet::new();
         for e in g.row_offsets[t] as usize..g.row_offsets[t + 1] as usize {
             seen.insert(g.col_indices[e]);
         }
-        out[t] = seen.len() as u32;
+        *slot = seen.len() as u32;
     }
     out
 }
@@ -84,7 +84,7 @@ pub fn grep(ing: &Ingest, g: &Graph, root: &str, pattern: &str) -> String {
     let top_line = {
         // top hit = first file's first hit; recompute for next=
         let mut next = String::new();
-        'outer: for (_fid, rel) in ing.files.iter().enumerate() {
+        'outer: for rel in ing.files.iter() {
             let Ok(bytes) = std::fs::read(format!("{}/{}", root, rel)) else {
                 continue;
             };

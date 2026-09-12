@@ -88,8 +88,8 @@ fn collect(
     };
     let mut cursor = QueryCursor::new();
     let names = query.capture_names().to_vec();
-    let mut it = cursor.matches(&query, tree.root_node(), src);
-    while let Some(m) = it.next() {
+    let it = cursor.matches(&query, tree.root_node(), src);
+    for m in it {
         let mut def_kind: Option<&'static str> = None;
         let mut def_from_constant = false;
         let mut def_node: Option<tree_sitter::Node> = None;
@@ -159,7 +159,7 @@ fn collect(
     }
 }
 
-fn node_text_at<'a>(src: &'a [u8], sb: usize, eb: usize) -> Option<String> {
+fn node_text_at(src: &[u8], sb: usize, eb: usize) -> Option<String> {
     if sb < eb && eb <= src.len() {
         Some(String::from_utf8_lossy(&src[sb..eb]).into_owned())
     } else {

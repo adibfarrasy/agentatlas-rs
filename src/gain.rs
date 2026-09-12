@@ -213,7 +213,7 @@ pub fn report(ledger: &str) -> Option<GainReport> {
     let _ = bad_lines;
     let saved = naive_tokens as i64 - spent_tokens as i64;
     let saved_pct = if naive_tokens > 0 {
-        (saved * 100 / naive_tokens as i64) as i64
+        saved * 100 / naive_tokens as i64
     } else {
         0
     };

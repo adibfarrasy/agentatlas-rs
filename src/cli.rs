@@ -116,3 +116,39 @@ impl Config {
         }
     }
 }
+
+pub const HELP: &str = r#"agentatlas — a deterministic codebase map for coding agents.
+Go + Java. Offline. One binary. Same output bytes, every run.
+
+USAGE
+  agentatlas <dir> [VERB] [options]
+
+  No verb → the ranked map: every symbol in the tree, ranked by
+  importance (PageRank), with call edges. Minified XML.
+
+VERBS
+  --grep=TERM        find TERM in the code, grouped by file
+  --callers=SYM      who calls SYM
+  --callees=SYM      what SYM calls
+  --uses=SYM         where SYM is used
+  --impact=SYM       what a change to SYM would reach
+  --at=FILE:LINE     the definition chain enclosing a line
+  --expand=SYM       a symbol's full body (whole file if smaller)
+  --for="TASK"       ranked symbols relevant to a task — the main one
+  --from-trace=FILE  map a stack trace onto the code
+  gain               report the token/time savings from your runs
+  --help             this text
+
+  SYM is a bare name, or FILE:NAME.
+
+OPTIONS
+  --top-k=N          cap the ranked rows
+  --gain-log=FILE    where the savings ledger lives (env RIPWIRE_GAIN_LOG)
+  --no-gain-log      don't log this run
+  --legend=compact   shorter legend on the map
+
+OUTPUT
+  Deterministic minified XML. Every uncertainty is labelled: floors say
+  counts_floor="1", a zero means "none found" never "none exists", and every
+  truncation is disclosed. est_tokens= prices the answer in tokens.
+"#;

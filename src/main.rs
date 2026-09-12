@@ -15,6 +15,13 @@ use std::path::Path;
 
 fn main() {
     let args: Vec<String> = std::env::args().collect();
+    if args
+        .iter()
+        .any(|a| a == "--help" || a == "-h" || a == "help")
+    {
+        print!("{}", cli::HELP);
+        return;
+    }
     let cfg = cli::Config::parse(&args[1..]);
     let root = cfg.root.clone();
     let root_path = Path::new(&root);

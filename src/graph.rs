@@ -17,7 +17,7 @@ pub struct Graph {
 const TIER_SAME_FILE: f32 = 1.0;
 
 /// Enclosing definition of a reference, per file: innermost def whose byte span contains the ref.
-fn enclosing<'a>(defs: &'a [Symbol], file_id: usize, sb: usize, eb: usize) -> Option<&'a Symbol> {
+fn enclosing(defs: &[Symbol], file_id: usize, sb: usize, eb: usize) -> Option<&Symbol> {
     defs.iter()
         .filter(|s| s.file_id == file_id && s.start_byte <= sb && s.end_byte >= eb)
         .max_by_key(|s| s.start_byte)
@@ -25,7 +25,7 @@ fn enclosing<'a>(defs: &'a [Symbol], file_id: usize, sb: usize, eb: usize) -> Op
 
 /// Resolve a reference's callee candidates by the precedence ladder: same file → same dir → unique
 /// global (same language). Returns the candidate symbol ids.
-fn candidates<'a>(ing: &'a Ingest, name: &str, file_id: usize) -> Vec<usize> {
+fn candidates(ing: &Ingest, name: &str, file_id: usize) -> Vec<usize> {
     let same_file: Vec<usize> = ing
         .symbols
         .iter()

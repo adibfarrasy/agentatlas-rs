@@ -54,7 +54,7 @@ const STOPWORDS: &[&str] = &[
 
 fn split_words(query: &str) -> Vec<&str> {
     query
-        .split(|c: char| c == ' ' || c == '\t' || c == '\n' || c == '\r')
+        .split([' ', '\t', '\n', '\r'])
         .filter(|w| !w.is_empty())
         .collect()
 }
@@ -440,7 +440,7 @@ pub fn emit(ing: &Ingest, g: &Graph, root: &str, query: &str, r: &ForRanking) ->
     sigs.push_str("</sigs>");
 
     // tail: files of trimmed positive rows — none here (kept == positiveHits)
-    let tail = format!("<tail total=\"0\" shown=\"0\" capped=\"0\"></tail>");
+    let tail = "<tail total=\"0\" shown=\"0\" capped=\"0\"></tail>".to_string();
 
     // hops: ranked symbols with a resolved callee
     let mut hops_rows = String::new();
