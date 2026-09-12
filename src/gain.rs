@@ -103,6 +103,19 @@ pub fn log_run(ledger: &str, row: &GainRow) {
     }
 }
 
+/// Shorten a large number to a readable form: 43.3K, 1.2M, or the raw number.
+fn short(n: i64) -> String {
+    let sign = if n < 0 { "-" } else { "" };
+    let abs = n.unsigned_abs();
+    if abs >= 1_000_000 {
+        format!("{sign}{:.1}M", abs as f64 / 1_000_000.0)
+    } else if abs >= 1_000 {
+        format!("{sign}{:.1}K", abs as f64 / 1_000.0)
+    } else {
+        format!("{sign}{abs}")
+    }
+}
+
 fn json_escape(s: &str) -> String {
     s.replace('\\', "\\\\").replace('"', "\\\"")
 }
@@ -264,22 +277,22 @@ pub fn render(r: &GainReport, _rate: f64, ledger: &str) -> String {
          naive_ms       {}\n\
          saved_ms       {} ({}%)\n",
         r.runs,
-        r.spent_tokens,
-        r.naive_tokens,
-        r.saved_tokens,
+        short(r.spent_tokens as i64),
+        short(r.naive_tokens as i64),
+        short(r.saved_tokens),
         r.saved_pct,
-        r.spent_ms,
-        r.naive_ms,
-        r.saved_ms,
+        short(r.spent_ms as i64),
+        short(r.naive_ms as i64),
+        short(r.saved_ms),
         r.saved_ms_pct
     ));
     out.push_str("\nper-repo (runs, spent_tokens):\n");
     for (repo, n, st) in &r.per_repo {
-        out.push_str(&format!("  {:<32} {:>4}  {}\n", repo, n, st));
+        out.push_str(&format!("  {:<32} {:>4}  {}\n", repo, n, short(*st as i64)));
     }
     out.push_str("\nper-verb (runs, spent_tokens):\n");
     for (verb, n, st) in &r.per_verb {
-        out.push_str(&format!("  {:<24} {:>4}  {}\n", verb, n, st));
+        out.push_str(&format!("  {:<24} {:>4}  {}\n", verb, n, short(*st as i64)));
     }
     if r.saved_tokens < 0 {
         out.push_str("\nnote: savings are negative — the answer cost more than reading those files directly.\n");
