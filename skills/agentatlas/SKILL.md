@@ -5,7 +5,7 @@ description: Map a codebase with agentatlas before you grep or read whole files 
 
 # agentatlas — map before you read
 
-`agentatlas` builds a deterministic, ranked map of a Go or Java codebase offline and answers
+`agentatlas` builds a deterministic, ranked map of a codebase (25 languages) offline and answers
 retrieval questions in one call — the alternative to blind `rg` + whole-file reads.
 
 ## When to reach for it

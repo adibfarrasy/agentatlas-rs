@@ -29,8 +29,8 @@ from the reference build, so the byte-parity claim is checkable.
    the same design hold-in-your-head-sized.
 2. **The long tail.** Most of ripwire's surface (quality lenses, naming lenses, cache-lint rules,
    eleven long-tail verbs) is not the essence. agentatlas rebuilds only the retrieval/change-safety core.
-3. **Language scope.** The use cases that matter here are Go and Java. ripwire ships 24 grammars;
-   agentatlas ships two and keeps the grammar table extensible.
+3. **Language scope.** The use cases that first motivated this are Go and Java. agentatlas now
+   ships all 25 grammars ripwire supports (plus HTML), one vendored grammar + query each.
 4. **A fresh history.** A fork would carry 2,485 commits of an AI-authored development history.
    agentatlas starts clean and owns its own.
 
