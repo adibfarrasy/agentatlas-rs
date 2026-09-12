@@ -1,8 +1,8 @@
 pub mod cli;
+pub mod crawl;
 pub mod extraverbs;
 pub mod forverb;
 pub mod gain;
-pub mod crawl;
 pub mod graph;
 pub mod ingest;
 pub mod legends;
@@ -12,7 +12,6 @@ pub mod serialize;
 pub mod verbs;
 
 use std::path::Path;
-
 
 fn main() {
     let args: Vec<String> = std::env::args().collect();
@@ -86,7 +85,10 @@ fn main() {
             None => (None, None, "none"),
         };
         let row = gain::GainRow {
-            ts: std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_secs()).unwrap_or(0),
+            ts: std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .map(|d| d.as_secs())
+                .unwrap_or(0),
             repo: root.clone(),
             verb: verb_name.to_string(),
             spent_tokens,

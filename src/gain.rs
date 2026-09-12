@@ -4,14 +4,14 @@
 use std::io::Write;
 
 pub struct GainRow {
-    pub ts: u64,          // unix seconds
+    pub ts: u64, // unix seconds
     pub repo: String,
     pub verb: String,
     pub spent_tokens: u64,
     pub spent_ms: u64,
     pub naive_tokens: Option<u64>,
     pub naive_ms: Option<u64>,
-    pub model: String,    // "file-set" | "none"
+    pub model: String, // "file-set" | "none"
 }
 
 fn xdg_data_home() -> String {
@@ -51,7 +51,9 @@ pub fn naive_for_doc(doc: &str, files: &[String], root: &str) -> Option<u64> {
     let mut offset = 0usize;
     while let Some(rel) = doc[offset..].find(" p=\"") {
         let start = offset + rel + 4;
-        let Some(end) = doc[start..].find('"') else { break };
+        let Some(end) = doc[start..].find('"') else {
+            break;
+        };
         let path = &doc[start..start + end];
         if !seen.contains(&path) && files.iter().any(|f| f == path) {
             seen.push(path);
@@ -73,8 +75,14 @@ pub fn log_run(ledger: &str, row: &GainRow) {
     if let Some(dir) = path.parent() {
         let _ = std::fs::create_dir_all(dir);
     }
-    let naive_tokens = row.naive_tokens.map(|v| v.to_string()).unwrap_or_else(|| "null".to_string());
-    let naive_ms = row.naive_ms.map(|v| v.to_string()).unwrap_or_else(|| "null".to_string());
+    let naive_tokens = row
+        .naive_tokens
+        .map(|v| v.to_string())
+        .unwrap_or_else(|| "null".to_string());
+    let naive_ms = row
+        .naive_ms
+        .map(|v| v.to_string())
+        .unwrap_or_else(|| "null".to_string());
     let line = format!(
         "{{\"ts\":{},\"repo\":\"{}\",\"verb\":\"{}\",\"spent_tokens\":{},\"spent_ms\":{},\"naive_tokens\":{},\"naive_ms\":{},\"model\":\"{}\"}}\n",
         row.ts,
@@ -86,7 +94,11 @@ pub fn log_run(ledger: &str, row: &GainRow) {
         naive_ms,
         row.model
     );
-    if let Ok(mut f) = std::fs::OpenOptions::new().create(true).append(true).open(ledger) {
+    if let Ok(mut f) = std::fs::OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(ledger)
+    {
         let _ = f.write_all(line.as_bytes());
     }
 }
@@ -107,16 +119,34 @@ fn parse_row(line: &str) -> Option<GainRow> {
         naive_ms: None,
         model: String::new(),
     };
-    for field in line.trim_start_matches('{').trim_end_matches('}').split(',') {
-        let Some((k, v)) = field.split_once(':') else { continue };
+    for field in line
+        .trim_start_matches('{')
+        .trim_end_matches('}')
+        .split(',')
+    {
+        let Some((k, v)) = field.split_once(':') else {
+            continue;
+        };
         match k.trim() {
             "\"ts\"" => r.ts = v.trim().parse().ok()?,
             "\"repo\"" => r.repo = v.trim().trim_matches('"').to_string(),
             "\"verb\"" => r.verb = v.trim().trim_matches('"').to_string(),
             "\"spent_tokens\"" => r.spent_tokens = v.trim().parse().ok()?,
             "\"spent_ms\"" => r.spent_ms = v.trim().parse().ok()?,
-            "\"naive_tokens\"" => r.naive_tokens = if v.trim() == "null" { None } else { Some(v.trim().parse().ok()?) },
-            "\"naive_ms\"" => r.naive_ms = if v.trim() == "null" { None } else { Some(v.trim().parse().ok()?) },
+            "\"naive_tokens\"" => {
+                r.naive_tokens = if v.trim() == "null" {
+                    None
+                } else {
+                    Some(v.trim().parse().ok()?)
+                }
+            }
+            "\"naive_ms\"" => {
+                r.naive_ms = if v.trim() == "null" {
+                    None
+                } else {
+                    Some(v.trim().parse().ok()?)
+                }
+            }
             "\"model\"" => r.model = v.trim().trim_matches('"').to_string(),
             _ => {}
         }
@@ -147,8 +177,10 @@ pub fn report(ledger: &str) -> Option<GainReport> {
     let mut spent_ms = 0u64;
     let mut naive_ms = 0u64;
     let mut unmodeled = 0usize;
-    let mut repo_totals: std::collections::BTreeMap<String, (u64, u64)> = std::collections::BTreeMap::new();
-    let mut verb_totals: std::collections::BTreeMap<String, (u64, u64)> = std::collections::BTreeMap::new();
+    let mut repo_totals: std::collections::BTreeMap<String, (u64, u64)> =
+        std::collections::BTreeMap::new();
+    let mut verb_totals: std::collections::BTreeMap<String, (u64, u64)> =
+        std::collections::BTreeMap::new();
     let mut bad_lines = 0usize;
     for line in text.lines() {
         let Some(r) = parse_row(line) else {
@@ -195,15 +227,23 @@ pub fn report(ledger: &str) -> Option<GainReport> {
         naive_ms,
         saved_ms: naive_ms as i64 - spent_ms as i64,
         unmodeled,
-        per_repo: repo_totals.into_iter().map(|(k, v)| (k, v.0, v.1)).collect(),
-        per_verb: verb_totals.into_iter().map(|(k, v)| (k, v.0, v.1)).collect(),
+        per_repo: repo_totals
+            .into_iter()
+            .map(|(k, v)| (k, v.0, v.1))
+            .collect(),
+        per_verb: verb_totals
+            .into_iter()
+            .map(|(k, v)| (k, v.0, v.1))
+            .collect(),
     })
 }
 
 pub fn render(r: &GainReport, rate: f64, ledger: &str) -> String {
     let mut out = String::new();
     if r.runs == 0 {
-        out.push_str("gain: no runs recorded yet — run a retrieval verb (e.g. --for) and it logs here.\n");
+        out.push_str(
+            "gain: no runs recorded yet — run a retrieval verb (e.g. --for) and it logs here.\n",
+        );
         out.push_str(&format!("ledger: {ledger}\n"));
         return out;
     }
@@ -215,7 +255,14 @@ pub fn render(r: &GainReport, rate: f64, ledger: &str) -> String {
          spent_ms      {}\n\
          naive_ms      {}\n\
          saved_ms      {}\n",
-        r.runs, r.spent_tokens, r.naive_tokens, r.saved_tokens, r.saved_pct, r.spent_ms, r.naive_ms, r.saved_ms
+        r.runs,
+        r.spent_tokens,
+        r.naive_tokens,
+        r.saved_tokens,
+        r.saved_pct,
+        r.spent_ms,
+        r.naive_ms,
+        r.saved_ms
     ));
     out.push_str("\nper-repo (runs, spent_tokens):\n");
     for (repo, n, st) in &r.per_repo {
@@ -226,7 +273,10 @@ pub fn render(r: &GainReport, rate: f64, ledger: &str) -> String {
         out.push_str(&format!("  {:<24} {:>4}  {}\n", verb, n, st));
     }
     out.push_str("\ndisclosure: naive=file-set (sum of named files' bytes / 4), read-rate ");
-    out.push_str(&format!("{} tok/s, unmodeled-runs {} (analyze/batch/quality_delta/edit_check log spent-only)\n", rate, r.unmodeled));
+    out.push_str(&format!(
+        "{} tok/s, unmodeled-runs {} (analyze/batch/quality_delta/edit_check log spent-only)\n",
+        rate, r.unmodeled
+    ));
     out.push_str(&format!("ledger: {ledger}\n"));
     out
 }

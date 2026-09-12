@@ -20,8 +20,8 @@ pub struct Symbol {
     pub end_line: u32,
     pub start_byte: usize,
     pub end_byte: usize,
-    pub scope: String, // enclosing scope (empty = top-level)
-    pub cx: u32,       // cyclomatic complexity (1 + decision points); fn/method only
+    pub scope: String,     // enclosing scope (empty = top-level)
+    pub cx: u32,           // cyclomatic complexity (1 + decision points); fn/method only
     pub body_start: usize, // body span (fn/method only; 0 = none)
     pub body_end: usize,
 }
@@ -70,10 +70,6 @@ fn kind_for_definition(cap: &str) -> Option<&'static str> {
     })
 }
 
-fn is_reference(cap: &str) -> bool {
-    cap == "reference.call"
-}
-
 fn collect(
     parser: &mut Parser,
     lang: &Language,
@@ -84,8 +80,12 @@ fn collect(
     refs: &mut Vec<Reference>,
 ) {
     parser.set_language(lang).ok();
-    let Some(tree) = parser.parse(src, None) else { return };
-    let Ok(query) = Query::new(lang, query_src) else { return };
+    let Some(tree) = parser.parse(src, None) else {
+        return;
+    };
+    let Ok(query) = Query::new(lang, query_src) else {
+        return;
+    };
     let mut cursor = QueryCursor::new();
     let names = query.capture_names().to_vec();
     let mut it = cursor.matches(&query, tree.root_node(), src);
@@ -99,8 +99,13 @@ fn collect(
             let cap_name = names[cap.index as usize];
             match cap_name {
                 "name" => name_node = Some(cap.node),
-                "definition.function" | "definition.method" | "definition.type" | "definition.class"
-                | "definition.struct" | "definition.interface" | "definition.var"
+                "definition.function"
+                | "definition.method"
+                | "definition.type"
+                | "definition.class"
+                | "definition.struct"
+                | "definition.interface"
+                | "definition.var"
                 | "definition.constant" => {
                     def_kind = kind_for_definition(cap_name);
                     def_from_constant = cap_name == "definition.constant";
@@ -112,7 +117,8 @@ fn collect(
         }
         if let Some(kind) = def_kind {
             if let (Some(name_node), Some(def_node)) = (name_node, def_node) {
-                let name = node_text_at(src, name_node.start_byte(), name_node.end_byte()).unwrap_or_default();
+                let name = node_text_at(src, name_node.start_byte(), name_node.end_byte())
+                    .unwrap_or_default();
                 if !name.is_empty() {
                     // Java field_declaration captures every field as a constant; the screaming-snake
                     // gate keeps the field-noise out (camelCase instance fields stay unindexed).
@@ -199,15 +205,29 @@ pub fn ingest(files: &[FileEntry], root: &str) -> Ingest {
                 "java" => JAVA_QUERY,
                 _ => "",
             },
-        ) else { continue };
-        let Ok(bytes) = std::fs::read(format!("{}/{}", root, fe.path)) else { continue };
-        collect(&mut parser, &lang, query_src, file_id, &bytes, &mut defs, &mut refs);
+        ) else {
+            continue;
+        };
+        let Ok(bytes) = std::fs::read(format!("{}/{}", root, fe.path)) else {
+            continue;
+        };
+        collect(
+            &mut parser,
+            &lang,
+            query_src,
+            file_id,
+            &bytes,
+            &mut defs,
+            &mut refs,
+        );
     }
 
     // Dedup definitions that resolved to the same (file, name): the generic type_spec rule and the
     // more specific struct/interface rules capture the same declaration under different nodes, so a
     // same-name pair is one symbol and the MORE SPECIFIC kind wins (later capture in tags.scm).
-    defs.sort_by(|a, b| (a.file_id, a.line, a.name.as_bytes()).cmp(&(b.file_id, b.line, b.name.as_bytes())));
+    defs.sort_by(|a, b| {
+        (a.file_id, a.line, a.name.as_bytes()).cmp(&(b.file_id, b.line, b.name.as_bytes()))
+    });
     let mut deduped: Vec<Symbol> = Vec::new();
     for s in defs {
         if let Some(last) = deduped.last_mut() {
@@ -228,7 +248,9 @@ pub fn ingest(files: &[FileEntry], root: &str) -> Ingest {
     // Assign scope: a definition nested inside another definition carries its scope name.
     // Go: methods are scoped to their receiver type. For byte-parity on this fixture, all three
     // symbols are top-level, so scope stays empty.
-    deduped.sort_by(|a, b| (a.file_id, a.line, a.name.as_bytes()).cmp(&(b.file_id, b.line, b.name.as_bytes())));
+    deduped.sort_by(|a, b| {
+        (a.file_id, a.line, a.name.as_bytes()).cmp(&(b.file_id, b.line, b.name.as_bytes()))
+    });
 
     Ingest {
         files: files.iter().map(|f| f.path.clone()).collect(),

@@ -41,7 +41,22 @@ cargo build --release
 ```bash
 cargo test
 test/parity.sh            # byte-identical vs the committed ripwire golden outputs
+test/gaincheck.sh         # the gain ledger gate
 ```
+
+## Track your savings
+
+Every retrieval run (`--for`, `--grep`, `--callers`, ...) appends one row to a JSONL ledger at
+`$XDG_DATA_HOME/ripwire/gain.jsonl` (override `--gain-log=FILE`, disable `--no-gain-log`). `gain`
+rolls it up — tokens spent vs the naive read those files would have cost, plus time:
+
+```bash
+agentatlas --for="find the point distance"   # logs a row
+agentatlas gain                              # totals, per-repo, per-verb, disclosure
+```
+
+The naive side is computed, not guessed: the byte size of the distinct files your answer named, ÷4.
+Verbs with no file-set (`analyze`) log spent-only, disclosed as unmodeled.
 
 ## License
 

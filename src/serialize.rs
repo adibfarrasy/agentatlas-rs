@@ -1,5 +1,7 @@
-use crate::ingest::{Ingest, KIND_FUNCTION, KIND_METHOD, KIND_STRUCT, KIND_INTERFACE, KIND_CLASS, KIND_VAR};
 use crate::graph::Graph;
+use crate::ingest::{
+    Ingest, KIND_CLASS, KIND_FUNCTION, KIND_INTERFACE, KIND_METHOD, KIND_STRUCT, KIND_VAR,
+};
 use crate::rank::RankRun;
 
 const LEGEND_MAIN: &str = "<!-- ripwire v1 t=fn|method|cls|struct|iface|var|sec|macro(#define;degraded:body-is-replacement-text,edges-cross-expansion) p=path layer=arch-layer(opt) n=name id=canonical(path::scope::name,when-scoped) k=rank c=call amb=ambiguous-calls(read-source) lpin=calls-pinned-by-locality-prior-alone(a-disclosed-guess;read-source;absent-if-0) overloads=N-same-name-defs-merged-into-this-row(absent-if-1;shown=counts-them-individually,so-rows+sum(overloads-1)=shown) hdr:unresolved=call-name-defined-only-in-a-lang-incompatible-file (edges heuristic) hdr:locality_pinned=sum-of-lpin(absent-if-0) hdr:external=calls-refused-as-bound-outside-the-tree(builtin/stdlib-name-without-in-repo-evidence,external-import,super-past-the-tree;no-edge;absent-if-0) r:est_tokens=hdr-copy(none-if-stable) -->";
@@ -28,7 +30,11 @@ fn estimate_model(ing: &Ingest, g: &Graph, root: &str) -> (usize, usize) {
     let mut content: std::collections::HashMap<String, f64> = std::collections::HashMap::new();
     let mut seen_files = vec![false; ing.files.len()];
     for (id, s) in ing.symbols.iter().enumerate() {
-        let li = ing.files[s.file_id].rsplit('.').next().unwrap_or("").to_string();
+        let li = ing.files[s.file_id]
+            .rsplit('.')
+            .next()
+            .unwrap_or("")
+            .to_string();
         if !seen_files[s.file_id] {
             seen_files[s.file_id] = true;
             markup += FILE_MARKUP as f64;
@@ -66,16 +72,32 @@ fn bytes_per_token(model: (usize, usize)) -> f64 {
 }
 
 fn escape_xml(s: &str) -> String {
-    s.replace('&', "&amp;").replace('<', "&lt;").replace('>', "&gt;").replace('"', "&quot;")
+    s.replace('&', "&amp;")
+        .replace('<', "&lt;")
+        .replace('>', "&gt;")
+        .replace('"', "&quot;")
 }
 
 /// builtinLayer: first directory component (case-insensitive) matching the layer table.
 pub fn builtin_layer(path: &str) -> &'static str {
     const LAYERS: &[(&str, &str)] = &[
-        ("game", "game"), ("gameplay", "game"), ("infra", "infra"), ("infrastructure", "infra"),
-        ("infrastucture", "infra"), ("metal", "render"), ("render", "render"), ("renderer", "render"),
-        ("math", "math"), ("numerics", "math"), ("sound", "audio"), ("audio", "audio"),
-        ("steer", "ai"), ("ai", "ai"), ("behavior", "ai"), ("test", "test"), ("tests", "test"),
+        ("game", "game"),
+        ("gameplay", "game"),
+        ("infra", "infra"),
+        ("infrastructure", "infra"),
+        ("infrastucture", "infra"),
+        ("metal", "render"),
+        ("render", "render"),
+        ("renderer", "render"),
+        ("math", "math"),
+        ("numerics", "math"),
+        ("sound", "audio"),
+        ("audio", "audio"),
+        ("steer", "ai"),
+        ("ai", "ai"),
+        ("behavior", "ai"),
+        ("test", "test"),
+        ("tests", "test"),
         ("bench", "test"),
     ];
     let last_slash = path.rfind('/').unwrap_or(path.len());
@@ -107,9 +129,7 @@ pub fn serialize(ing: &Ingest, g: &Graph, rank: &RankRun, root: &str) -> String 
     // Order symbols by (rank DESC, id ASC). Node ids are ingest order (file, line, name).
     let n = ing.symbols.len();
     let mut order: Vec<usize> = (0..n).collect();
-    order.sort_by(|&a, &b| {
-        rank.ranks[b].total_cmp(&rank.ranks[a]).then(a.cmp(&b))
-    });
+    order.sort_by(|&a, &b| rank.ranks[b].total_cmp(&rank.ranks[a]).then(a.cmp(&b)));
 
     let model = estimate_model(ing, g, root);
     let bpt = bytes_per_token(model);

@@ -1,5 +1,5 @@
 use crate::graph::Graph;
-use crate::ingest::{Ingest, Symbol, KIND_METHOD, KIND_FUNCTION};
+use crate::ingest::Ingest;
 
 // ── subtoken splitter (scalar port of ripwire's forEachLexTokenSpan) ────────────────────────────────
 pub fn subtokens(id: &str) -> Vec<String> {
@@ -13,7 +13,6 @@ pub fn subtokens(id: &str) -> Vec<String> {
         let b = bytes[i];
         let alnum = b.is_ascii_alphanumeric();
         let upper = b.is_ascii_uppercase();
-        let lower = b.is_ascii_lowercase();
         let next_lower = i + 1 < n && bytes[i + 1].is_ascii_lowercase();
         // an uppercase starts a new token when the previous byte was alnum and (prev not upper OR a
         // lowercase follows) — the acronym rule: only the LAST uppercase of a run, and only when a
@@ -54,7 +53,10 @@ const STOPWORDS: &[&str] = &[
 ];
 
 fn split_words(query: &str) -> Vec<&str> {
-    query.split(|c: char| c == ' ' || c == '\t' || c == '\n' || c == '\r').filter(|w| !w.is_empty()).collect()
+    query
+        .split(|c: char| c == ' ' || c == '\t' || c == '\n' || c == '\r')
+        .filter(|w| !w.is_empty())
+        .collect()
 }
 
 pub struct Route {
@@ -111,7 +113,10 @@ pub fn choose_ranker(ing: &Ingest, query: &str) -> Route {
     if name_exact {
         Route {
             name_exact: true,
-            reason: format!("name-exact BM25 — query names a symbol ({})", identifier_hit),
+            reason: format!(
+                "name-exact BM25 — query names a symbol ({})",
+                identifier_hit
+            ),
         }
     } else if n_words >= 3 {
         Route {
@@ -131,7 +136,6 @@ const K1: f64 = 1.5;
 const B: f64 = 0.75;
 const KW_NAME: i32 = 3;
 const KW_CALLEE: i32 = 1;
-const KW_DOC: i32 = 2;
 const KW_BODY: i32 = 1;
 
 struct Scorer<'a> {
@@ -158,9 +162,13 @@ impl<'a> Scorer<'a> {
         }
         // body
         if s.body_end > s.body_start {
-            if let Ok(bytes) = std::fs::read(format!("{}/{}", self.root, self.ing.files[s.file_id])) {
+            if let Ok(bytes) = std::fs::read(format!("{}/{}", self.root, self.ing.files[s.file_id]))
+            {
                 if s.body_end <= bytes.len() && s.body_start <= s.body_end {
-                    f.push((String::from_utf8_lossy(&bytes[s.body_start..s.body_end]).into_owned(), KW_BODY));
+                    f.push((
+                        String::from_utf8_lossy(&bytes[s.body_start..s.body_end]).into_owned(),
+                        KW_BODY,
+                    ));
                 }
             }
         }
@@ -174,8 +182,8 @@ impl<'a> Scorer<'a> {
         for (text, w) in self.fields(id) {
             for tok in subtokens(&text) {
                 dl += w;
-                for (u, q) in uniq.iter().enumerate() {
-                    if *q == tok {
+                for (u, _q) in uniq.iter().enumerate() {
+                    if uniq[u] == tok {
                         tf[u] += w;
                     }
                 }
@@ -186,8 +194,8 @@ impl<'a> Scorer<'a> {
 }
 
 pub struct ForRanking {
-    pub scores: Vec<f32>,       // per-symbol
-    pub order: Vec<usize>,      // symbol ids, score desc (positive only, then by id)
+    pub scores: Vec<f32>,  // per-symbol
+    pub order: Vec<usize>, // symbol ids, score desc (positive only, then by id)
     pub kept: usize,
     pub positive_hits: usize,
     pub hit_ceiling: bool,
@@ -227,12 +235,13 @@ pub fn rank(ing: &Ingest, g: &Graph, root: &str, query: &str) -> ForRanking {
         }
     }
     let s = s_count as f64;
-    let avgdl = all_dl.iter().map(|&d| d as f64).sum::<f64>() / if s_count > 0 { s_count as f64 } else { 1.0 };
+    let avgdl = all_dl.iter().map(|&d| d as f64).sum::<f64>()
+        / if s_count > 0 { s_count as f64 } else { 1.0 };
 
     let mut scores = vec![0f32; s_count];
     for i in 0..s_count {
         let mut sc = 0.0f64;
-        for (u, q) in uniq.iter().enumerate() {
+        for (u, _q) in uniq.iter().enumerate() {
             let tf = all_tf[i][u];
             if tf == 0 || df[u] == 0 {
                 continue;
@@ -254,7 +263,7 @@ pub fn rank(ing: &Ingest, g: &Graph, root: &str, query: &str) -> ForRanking {
     let floor_k = 5usize;
     let ceiling_k = 40usize;
     let total_window = ceiling_k;
-    let mut kept = 0usize;
+    let mut kept;
     let mut hit_ceiling = true;
     let mut margin_pct = 0i32;
 
@@ -268,7 +277,11 @@ pub fn rank(ing: &Ingest, g: &Graph, root: &str, query: &str) -> ForRanking {
         for i in 1..scan_end {
             let prev = pos[i - 1] as f64;
             let here = pos[i] as f64;
-            let drop = if prev > 0.0 { (prev - here) / prev } else { 0.0 };
+            let drop = if prev > 0.0 {
+                (prev - here) / prev
+            } else {
+                0.0
+            };
             if drop > best_drop {
                 best_drop = drop;
             }
@@ -284,7 +297,11 @@ pub fn rank(ing: &Ingest, g: &Graph, root: &str, query: &str) -> ForRanking {
             hit_ceiling = false;
         } else {
             kept = hard_ceil;
-            margin_pct = if best_drop >= MIN_CLIFF { (best_drop * 100.0 + 0.5) as i32 } else { 0 };
+            margin_pct = if best_drop >= MIN_CLIFF {
+                (best_drop * 100.0 + 0.5) as i32
+            } else {
+                0
+            };
         }
         kept = kept.max(f);
     } else {
@@ -293,9 +310,7 @@ pub fn rank(ing: &Ingest, g: &Graph, root: &str, query: &str) -> ForRanking {
 
     // order: symbol ids sorted by score desc (positive scores first, then any remaining by id)
     let mut order: Vec<usize> = (0..s_count).collect();
-    order.sort_by(|&a, &b| {
-        scores[b].total_cmp(&scores[a]).then(a.cmp(&b))
-    });
+    order.sort_by(|&a, &b| scores[b].total_cmp(&scores[a]).then(a.cmp(&b)));
 
     ForRanking {
         scores,
@@ -320,7 +335,9 @@ fn escape_xml(s: &str) -> String {
 /// first line of the def, trimmed of a trailing "{" — the signature shown in <d> rows
 pub fn signature(ing: &Ingest, root: &str, id: usize) -> String {
     let s = &ing.symbols[id];
-    let Ok(bytes) = std::fs::read(format!("{}/{}", root, ing.files[s.file_id])) else { return String::new() };
+    let Ok(bytes) = std::fs::read(format!("{}/{}", root, ing.files[s.file_id])) else {
+        return String::new();
+    };
     let sb = s.start_byte.min(bytes.len());
     let rest = &bytes[sb..];
     let line_end = rest.iter().position(|&b| b == b'\n').unwrap_or(rest.len());
@@ -360,7 +377,11 @@ const LEGEND_MID: &str = ": reusable building blocks + quality facts for what yo
 const CONFIDENCE_NOTE: &str = " [confidence= derives from the ranked head's largest relative score drop (margin_pct=, whole percent, 0 = none; the same gap the adaptive flag cuts at). low = flat ranking: treat the set as a starting point, not an answer]";
 
 pub fn emit(ing: &Ingest, g: &Graph, root: &str, query: &str, r: &ForRanking) -> String {
-    let level = if !r.hit_ceiling || (r.positive_hits > 0 && r.positive_hits <= r.kept) { "high" } else { "low" };
+    let level = if !r.hit_ceiling || (r.positive_hits > 0 && r.positive_hits <= r.kept) {
+        "high"
+    } else {
+        "low"
+    };
     let zero_count = r.total_window.saturating_sub(r.positive_hits);
 
     let mut legend = String::new();
@@ -446,14 +467,21 @@ pub fn emit(ing: &Ingest, g: &Graph, root: &str, query: &str, r: &ForRanking) ->
             callees.len()
         );
         for (to, l) in &callees {
-            h.push_str(&format!("<c n=\"{}\" l=\"{}\"/>", escape_xml(&ing.symbols[*to].name), l));
+            h.push_str(&format!(
+                "<c n=\"{}\" l=\"{}\"/>",
+                escape_xml(&ing.symbols[*to].name),
+                l
+            ));
         }
         h.push_str("</calls></h>");
         hops_rows.push_str(&h);
     }
     let hops = format!(
         "<hops shown=\"{}\" total=\"{}\" capped=\"0\" noedge=\"{}\">{}</hops>",
-        hops_shown, shown_syms.len(), noedge, hops_rows
+        hops_shown,
+        shown_syms.len(),
+        noedge,
+        hops_rows
     );
 
     // assemble the document, then the est_tokens fixpoint over measured bytes

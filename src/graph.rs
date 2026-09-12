@@ -70,9 +70,12 @@ pub fn build(ing: &Ingest) -> Graph {
     defs.sort_by_key(|s| (s.file_id, s.start_byte));
 
     // Accumulate edges: from (enclosing def) → resolved callee.
-    let mut acc: std::collections::HashMap<(usize, usize), (f32, u32)> = std::collections::HashMap::new();
+    let mut acc: std::collections::HashMap<(usize, usize), (f32, u32)> =
+        std::collections::HashMap::new();
     for r in &ing.refs {
-        let Some(encl) = enclosing(&defs, r.file_id, r.start_byte, r.end_byte) else { continue };
+        let Some(encl) = enclosing(&defs, r.file_id, r.start_byte, r.end_byte) else {
+            continue;
+        };
         let from = defs.iter().position(|s| std::ptr::eq(s, encl)).unwrap();
         let cands = candidates(ing, &r.name, r.file_id);
         if cands.is_empty() {

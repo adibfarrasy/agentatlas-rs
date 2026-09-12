@@ -1,10 +1,12 @@
-use crate::cli::Config;
 use crate::graph::Graph;
 use crate::ingest::{Ingest, Symbol};
 use crate::legends::GREP_LEGEND;
 
 pub fn escape_xml(s: &str) -> String {
-    s.replace('&', "&amp;").replace('<', "&lt;").replace('>', "&gt;").replace('"', "&quot;")
+    s.replace('&', "&amp;")
+        .replace('<', "&lt;")
+        .replace('>', "&gt;")
+        .replace('"', "&quot;")
 }
 
 /// Innermost symbol whose byte span contains `byte` in `file_id`.
@@ -39,7 +41,9 @@ pub fn grep(ing: &Ingest, g: &Graph, root: &str, pattern: &str) -> String {
     let mut enc_names: Vec<&str> = Vec::new();
 
     for (fid, rel) in ing.files.iter().enumerate() {
-        let Ok(bytes) = std::fs::read(format!("{}/{}", root, rel)) else { continue };
+        let Ok(bytes) = std::fs::read(format!("{}/{}", root, rel)) else {
+            continue;
+        };
         let text = String::from_utf8_lossy(&bytes).into_owned();
         // line start byte offsets
         let mut line_offsets: Vec<usize> = vec![0];
@@ -51,7 +55,9 @@ pub fn grep(ing: &Ingest, g: &Graph, root: &str, pattern: &str) -> String {
         let mut hits_block = String::new();
         for (li, line) in text.lines().enumerate() {
             let lstart = line_offsets[li];
-            let Some(mpos) = line.find(pattern) else { continue };
+            let Some(mpos) = line.find(pattern) else {
+                continue;
+            };
             let hit_byte = lstart + mpos;
             let enc = enclosing(ing, fid, hit_byte);
             let enc_name = enc.map(|s| s.name.as_str());
@@ -64,7 +70,8 @@ pub fn grep(ing: &Ingest, g: &Graph, root: &str, pattern: &str) -> String {
             hits_block.push_str(&format!(
                 "<hit l=\"{}\"{}><![CDATA[{}]]></hit>",
                 line_no,
-                enc.map(|s| format!(" in=\"{}\"", escape_xml(&s.name))).unwrap_or_default(),
+                enc.map(|s| format!(" in=\"{}\"", escape_xml(&s.name)))
+                    .unwrap_or_default(),
                 line
             ));
             total_hits += 1;
@@ -77,8 +84,10 @@ pub fn grep(ing: &Ingest, g: &Graph, root: &str, pattern: &str) -> String {
     let top_line = {
         // top hit = first file's first hit; recompute for next=
         let mut next = String::new();
-        'outer: for (fid, rel) in ing.files.iter().enumerate() {
-            let Ok(bytes) = std::fs::read(format!("{}/{}", root, rel)) else { continue };
+        'outer: for (_fid, rel) in ing.files.iter().enumerate() {
+            let Ok(bytes) = std::fs::read(format!("{}/{}", root, rel)) else {
+                continue;
+            };
             let text = String::from_utf8_lossy(&bytes).into_owned();
             for (li, line) in text.lines().enumerate() {
                 if line.contains(pattern) {
@@ -169,8 +178,12 @@ fn tested_reaches(ing: &Ingest, g: &Graph) -> Vec<bool> {
 }
 
 fn hierarchy(ing: &Ingest, g: &Graph, root: &str, sel: &str, which: &str) -> String {
-    use crate::legends::{CALLERS_LEGEND, CALLEES_LEGEND};
-    let legend = if which == "callers" { CALLERS_LEGEND } else { CALLEES_LEGEND };
+    use crate::legends::{CALLEES_LEGEND, CALLERS_LEGEND};
+    let legend = if which == "callers" {
+        CALLERS_LEGEND
+    } else {
+        CALLEES_LEGEND
+    };
     let mut out = String::new();
     out.push_str(legend);
 
@@ -209,7 +222,13 @@ fn hierarchy(ing: &Ingest, g: &Graph, root: &str, sel: &str, which: &str) -> Str
     // rows sorted SOURCE → test/bench → docs, path within tier
     let mut rows: Vec<(u8, String, usize)> = neighbour_ids
         .iter()
-        .map(|&id| (row_tier(&ing.files[ing.symbols[id].file_id]), ing.files[ing.symbols[id].file_id].clone(), id))
+        .map(|&id| {
+            (
+                row_tier(&ing.files[ing.symbols[id].file_id]),
+                ing.files[ing.symbols[id].file_id].clone(),
+                id,
+            )
+        })
         .collect();
     rows.sort_by(|a, b| a.0.cmp(&b.0).then(a.1.as_bytes().cmp(b.1.as_bytes())));
 
@@ -240,7 +259,7 @@ fn hierarchy(ing: &Ingest, g: &Graph, root: &str, sel: &str, which: &str) -> Str
     out
 }
 
-pub fn uses(ing: &Ingest, g: &Graph, root: &str, sel: &str) -> String {
+pub fn uses(ing: &Ingest, _g: &Graph, root: &str, sel: &str) -> String {
     use crate::legends::USES_LEGEND;
     let mut out = String::new();
     out.push_str(USES_LEGEND);

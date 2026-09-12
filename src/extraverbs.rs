@@ -1,9 +1,13 @@
 use crate::graph::Graph;
-use crate::ingest::{Ingest, Symbol, KIND_METHOD, KIND_FUNCTION};
+use crate::ingest::Ingest;
 use crate::legends::{AT_LEGEND, IMPACT_LEGEND};
 
 fn esc(s: &str) -> String {
-    s.replace('&', "&amp;").replace('<', "&lt;").replace('>', "&gt;").replace('"', "&quot;").replace('\'', "&apos;")
+    s.replace('&', "&amp;")
+        .replace('<', "&lt;")
+        .replace('>', "&gt;")
+        .replace('"', "&quot;")
+        .replace('\'', "&apos;")
 }
 
 fn sym_tag(kind: &str) -> &str {
@@ -14,9 +18,16 @@ fn sym_tag(kind: &str) -> &str {
 fn resolve(ing: &Ingest, sel: &str) -> Vec<usize> {
     let mut out = Vec::new();
     if let Some((f, name)) = sel.rsplit_once(':') {
-        if ing.files.iter().any(|p| p == f || p.ends_with(&format!("/{f}"))) {
+        if ing
+            .files
+            .iter()
+            .any(|p| p == f || p.ends_with(&format!("/{f}")))
+        {
             for (i, s) in ing.symbols.iter().enumerate() {
-                if s.name == name && (ing.files[s.file_id] == f || ing.files[s.file_id].ends_with(&format!("/{f}"))) {
+                if s.name == name
+                    && (ing.files[s.file_id] == f
+                        || ing.files[s.file_id].ends_with(&format!("/{f}")))
+                {
                     out.push(i);
                 }
             }
@@ -50,7 +61,11 @@ pub fn at(ing: &Ingest, root: &str, seed: &str) -> String {
     let innermost = syms.iter().max_by_key(|s| s.line).unwrap();
     out.push_str(&format!(
         "<at p=\"{}\" l=\"{}\" sym=\"{}\" chain=\"{}\" root=\"{}\">",
-        esc(f), line, esc(&innermost.name), 1, esc(root)
+        esc(f),
+        line,
+        esc(&innermost.name),
+        1,
+        esc(root)
     ));
     out.push_str(&format!(
         "<s n=\"{}\" t=\"{}\" l=\"{}\" el=\"{}\"/>",
@@ -90,7 +105,13 @@ fn render_bodies(ing: &Ingest, g: &Graph, root: &str, id: usize) -> String {
     render_bodies_opt(ing, g, root, id, true)
 }
 
-fn render_bodies_opt(ing: &Ingest, g: &Graph, root: &str, id: usize, with_sibs_inc: bool) -> String {
+fn render_bodies_opt(
+    ing: &Ingest,
+    g: &Graph,
+    root: &str,
+    id: usize,
+    with_sibs_inc: bool,
+) -> String {
     let s = &ing.symbols[id];
     let rel = &ing.files[s.file_id];
     let bytes = std::fs::read(format!("{root}/{rel}")).unwrap_or_default();
@@ -144,7 +165,12 @@ fn render_bodies_opt(ing: &Ingest, g: &Graph, root: &str, id: usize, with_sibs_i
     b.push_str("><![CDATA[");
     b.push_str(&body);
     b.push_str("]]>");
-    let callees: Vec<usize> = g.out_edges.iter().filter(|(from, _, _)| *from == id).map(|(_, to, _)| *to).collect();
+    let callees: Vec<usize> = g
+        .out_edges
+        .iter()
+        .filter(|(from, _, _)| *from == id)
+        .map(|(_, to, _)| *to)
+        .collect();
     if !callees.is_empty() {
         b.push_str(&format!("<calls total=\"{}\"", callees.len()));
         b.push_str(">");
@@ -160,7 +186,10 @@ fn render_bodies_opt(ing: &Ingest, g: &Graph, root: &str, id: usize, with_sibs_i
         b.push_str("</calls>");
     }
     b.push_str("</b>");
-    format!("<bodies shown=\"1\" total=\"1\" capped=\"0\">{}</bodies>", b)
+    format!(
+        "<bodies shown=\"1\" total=\"1\" capped=\"0\">{}</bodies>",
+        b
+    )
 }
 
 /// --expand: whole-file mode when the file is smaller than the modeled bundle.
@@ -190,10 +219,16 @@ pub fn expand(ing: &Ingest, g: &Graph, root: &str, sel: &str) -> String {
         reason = format!("bundle {}B &lt;= file {}B", bundle, raw);
     }
 
-    let src_open = format!("<src p=\"{}\" sym=\"{}\">", esc(rel), esc(&format!("{}:{}", s.name, s.line)));
+    let src_open = format!(
+        "<src p=\"{}\" sym=\"{}\">",
+        esc(rel),
+        esc(&format!("{}:{}", s.name, s.line))
+    );
     let header = format!(
         "<ctx root=\"{}\" topk_default=\"0\" mode=\"{}\" reason=\"{}\">",
-        esc(root), mode, reason
+        esc(root),
+        mode,
+        reason
     );
     // est: the whole document (ctx + src + cdata + closes) priced at the body rate, converged
     // over the est attr's own digits (pricedRootAttr semantics).
@@ -227,12 +262,17 @@ pub fn from_trace(ing: &Ingest, g: &Graph, root: &str, trace_file: &str) -> Stri
     let mut frames: Vec<(String, u32, Option<usize>)> = Vec::new();
     for line in text.lines() {
         let t = line.trim();
-        let Some((path, ls)) = t.rsplit_once(':') else { continue };
+        let Some((path, ls)) = t.rsplit_once(':') else {
+            continue;
+        };
         let Ok(l) = ls.parse::<u32>() else { continue };
         if path.contains(' ') {
             continue;
         }
-        let file_id = ing.files.iter().position(|p| path.ends_with(p) || p == path);
+        let file_id = ing
+            .files
+            .iter()
+            .position(|p| path.ends_with(p) || p == path);
         let sym = file_id.and_then(|fid| {
             ing.symbols
                 .iter()
@@ -248,7 +288,9 @@ pub fn from_trace(ing: &Ingest, g: &Graph, root: &str, trace_file: &str) -> Stri
     let in_corpus = frames.iter().filter(|f| f.2.is_some()).count();
     let suspects = in_corpus;
 
-    let mut order: Vec<usize> = (0..frames.len()).filter(|&i| frames[i].2.is_some()).collect();
+    let mut order: Vec<usize> = (0..frames.len())
+        .filter(|&i| frames[i].2.is_some())
+        .collect();
     order.sort_by_key(|&i| i);
 
     let stats = format!(
@@ -275,7 +317,10 @@ pub fn from_trace(ing: &Ingest, g: &Graph, root: &str, trace_file: &str) -> Stri
         let s = &ing.symbols[sym_id];
         let mut f = format!(
             "<frame rank=\"{}\" n=\"{}\" t=\"{}\" p=\"{}\" resolved_by=\"line\"",
-            rank + 1, esc(&s.name), crate::serialize::sym_tag(s.kind), esc(&format!("{path}:{l}"))
+            rank + 1,
+            esc(&s.name),
+            crate::serialize::sym_tag(s.kind),
+            esc(&format!("{path}:{l}"))
         );
         if rank == 0 {
             f.push_str(" innermost=\"1\"");
@@ -300,8 +345,21 @@ pub fn from_trace(ing: &Ingest, g: &Graph, root: &str, trace_file: &str) -> Stri
         let s = &ing.symbols[id];
         sigs.push_str(&format!(
             "<d l=\"{}\" n=\"{}\" p=\"{}\" cx=\"{}\" ccx=\"0\" in=\"{}\" r=\"{}\"{}{}>{}</d>",
-            s.line, esc(&s.name), esc(&ing.files[s.file_id]), s.cx, fan(id), rank + 1,
-            if rank == 0 { format!(" next=\"--expand={}:{}\"", esc(&ing.files[s.file_id]), esc(&s.name)) } else { String::new() },
+            s.line,
+            esc(&s.name),
+            esc(&ing.files[s.file_id]),
+            s.cx,
+            fan(id),
+            rank + 1,
+            if rank == 0 {
+                format!(
+                    " next=\"--expand={}:{}\"",
+                    esc(&ing.files[s.file_id]),
+                    esc(&s.name)
+                )
+            } else {
+                String::new()
+            },
             "",
             esc(&crate::forverb::signature(ing, root, id))
         ));
@@ -325,7 +383,9 @@ pub fn from_trace(ing: &Ingest, g: &Graph, root: &str, trace_file: &str) -> Stri
         };
         format!(
             "<ctx task=\"{}\"{} est_tokens=\"{}\"",
-            esc(trace_file), next_attr, est
+            esc(trace_file),
+            next_attr,
+            est
         )
     };
     let mut est = 0usize;
