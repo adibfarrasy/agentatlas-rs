@@ -1,0 +1,41 @@
+src/main.rs
+  s_6375756fc4681c::t_95669fb2e577a6 30-31,33
+src/serialize.rs
+  s_6375756fc4681c::t_6e1606cd354d6e 73,93
+src/verbs.rs
+  s_6375756fc4681c::t_0c4aa2d29aa7eb 6,122-263
+test/golden/map-golang
+  s_6375756fc4681c::t_2a83172ec97c21 1
+test/golden/map-java
+  s_6375756fc4681c::t_9d61eb6c91111e 1
+test/golden/verbs/callees-main
+  s_6375756fc4681c::t_4170cdbbdfd82d 1
+test/golden/verbs/callers-dist
+  s_6375756fc4681c::t_51a9755bc8c7b7 1
+test/golden/verbs/for-find
+  s_6375756fc4681c::t_b7ed66dc59bd40 1
+test/golden/verbs/grep-dist
+  s_6375756fc4681c::t_6f5608137bf4fb 1
+test/golden/verbs/grep-point
+  s_6375756fc4681c::t_d5be5451c5f5a0 1
+test/golden/verbs/uses-point
+  s_6375756fc4681c::t_91ae70b5650576 1
+test/parity.sh
+  s_6375756fc4681c::t_d520bbaad89b1d 3-4,9-21,23-25,27-36,38
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.11",
+  "base_commit_sha": "a4f24780192da8930086bfbc6916d11d5a05ab5a",
+  "prompts": {},
+  "sessions": {
+    "s_6375756fc4681c": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_f6d22c3f1ffe2RNQxUoYBDMJ2x",
+        "model": "deepseek-v4-flash"
+      },
+      "human_author": "Adib Farrasy <adibfarrasy@gmail.com>"
+    }
+  }
+}
