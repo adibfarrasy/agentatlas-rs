@@ -1,0 +1,355 @@
+queries/html/tags.scm
+  s_6375756fc4681c::t_3e2ac6144c22c0 1-3,5
+  s_6375756fc4681c::t_6e797554ba4eb1 4
+build.rs
+  s_6375756fc4681c::t_48e2f20c5e4e63 1-2,4-48
+src/ingest.rs
+  s_6375756fc4681c::t_54b08fda807478 2,11-49,53-169,199,203-204,207-210,219-220,256,333,382,385
+  s_6375756fc4681c::t_c547d9d3e1d781 212-213,218,221-222,227,239-241,249-255,264-267,332,342-344,359,362-363,365,368-369,371,374-381,383-384,386-391
+Cargo.lock
+  s_6375756fc4681c::t_e9aa6a378dcbce 10,34-39,46-67,74-91,121-163,170-186,189,191,196-197,206-217
+Cargo.toml
+  s_6375756fc4681c::t_0b194225631848 7-9
+queries/bash/tags.scm
+  s_6375756fc4681c::t_fcf3e9913a1e23 1-26
+queries/c/tags.scm
+  s_6375756fc4681c::t_c0fe20a028e857 1-98
+queries/cpp/tags.scm
+  s_6375756fc4681c::t_da5f6c2f4ec450 1-379
+queries/csharp/tags.scm
+  s_6375756fc4681c::t_9a85da085e71c4 1-111
+queries/dart/tags.scm
+  s_6375756fc4681c::t_fbbab17cd36299 1-86
+queries/elixir/tags.scm
+  s_6375756fc4681c::t_a8ffa0b86b936b 1-31
+queries/javascript/tags.scm
+  s_6375756fc4681c::t_520fcd67942742 1-154
+queries/json/tags.scm
+  s_6375756fc4681c::t_6bcda7ad32acc2 1-35
+queries/kotlin/tags.scm
+  s_6375756fc4681c::t_e6835b66fc1944 1-82
+queries/lua/tags.scm
+  s_6375756fc4681c::t_d4e29114275699 1-92
+queries/objc/tags.scm
+  s_6375756fc4681c::t_b4e8fd41ca291e 1-28
+queries/php/tags.scm
+  s_6375756fc4681c::t_18a514f8a4efb0 1-101
+queries/python/tags.scm
+  s_6375756fc4681c::t_8f781f094493d2 1-66
+queries/ruby/tags.scm
+  s_6375756fc4681c::t_3c61adb0002639 1-61
+queries/rust/tags.scm
+  s_6375756fc4681c::t_09a00691a0c73d 1-103
+queries/swift/tags.scm
+  s_6375756fc4681c::t_526976fdbc5f0b 1-52
+queries/toml/tags.scm
+  s_6375756fc4681c::t_562ef3c7f7dabd 1-81
+queries/typescript/tags.scm
+  s_6375756fc4681c::t_da8aad7d164200 1-129
+queries/yaml/tags.scm
+  s_6375756fc4681c::t_c625d8ea23dde8 1-70
+skills/agentatlas/SKILL.md
+  s_6375756fc4681c::t_3b78db986662fa 47-48
+src/cli.rs
+  s_6375756fc4681c::t_47a7e8d5629172 121-122
+src/crawl.rs
+  s_6375756fc4681c::t_b33c1765fb593b 35
+src/gain.rs
+  s_6375756fc4681c::t_cf934c4587e1bb 163,216-223,233,236,249,259-274,288
+src/serialize.rs
+  s_6375756fc4681c::t_71ef739bbe01fe 3-4,124-125
+third_party/deps/bash/LICENSE
+  s_6375756fc4681c::t_72b5c9d7f74689 1-21
+third_party/deps/bash/src/parser.c
+  s_6375756fc4681c::t_65e6531d4d8a56 1-359888
+third_party/deps/bash/src/scanner.c
+  s_6375756fc4681c::t_800d3230a802db 1-1217
+third_party/deps/bash/src/tree_sitter/alloc.h
+  s_6375756fc4681c::t_a82d683746b71b 1-54
+third_party/deps/bash/src/tree_sitter/array.h
+  s_6375756fc4681c::t_a18ee4a6e234cf 1-290
+third_party/deps/bash/src/tree_sitter/parser.h
+  s_6375756fc4681c::t_5fe940dae60591 1-266
+third_party/deps/c/LICENSE
+  s_6375756fc4681c::t_18e4fd7e15bdee 1-21
+third_party/deps/c/src/parser.c
+  s_6375756fc4681c::t_20125a7de5a03f 1-118872
+third_party/deps/c/src/tree_sitter/alloc.h
+  s_6375756fc4681c::t_32f87a509b5b47 1-54
+third_party/deps/c/src/tree_sitter/array.h
+  s_6375756fc4681c::t_b902c8ec8088ca 1-291
+third_party/deps/c/src/tree_sitter/parser.h
+  s_6375756fc4681c::t_7af8213385136d 1-286
+third_party/deps/cpp/LICENSE
+  s_6375756fc4681c::t_aad34da754b197 1-21
+third_party/deps/cpp/src/parser.c
+  s_6375756fc4681c::t_466437e0e65b8b 1-530368
+third_party/deps/cpp/src/scanner.c
+  s_6375756fc4681c::t_88a48b48f6468d 1-148
+third_party/deps/cpp/src/tree_sitter/alloc.h
+  s_6375756fc4681c::t_0dba2e5a13d82e 1-54
+third_party/deps/cpp/src/tree_sitter/array.h
+  s_6375756fc4681c::t_ab08f344ffafd5 1-290
+third_party/deps/cpp/src/tree_sitter/parser.h
+  s_6375756fc4681c::t_378628c07ee178 1-266
+third_party/deps/csharp/LICENSE
+  s_6375756fc4681c::t_28b0cf1adc7350 1-21
+third_party/deps/csharp/src/parser.c
+  s_6375756fc4681c::t_2e6a13d9d8af78 1-824799
+third_party/deps/csharp/src/scanner.c
+  s_6375756fc4681c::t_6dbe59dd87995f 1-426
+third_party/deps/csharp/src/tree_sitter/alloc.h
+  s_6375756fc4681c::t_87a03d91b36739 1-54
+third_party/deps/csharp/src/tree_sitter/array.h
+  s_6375756fc4681c::t_f7577a6bfc35d9 1-330
+third_party/deps/csharp/src/tree_sitter/parser.h
+  s_6375756fc4681c::t_829286626a6178 1-286
+third_party/deps/cuda/LICENSE
+  s_6375756fc4681c::t_16f2f23251749f 1-22
+third_party/deps/cuda/src/parser.c
+  s_6375756fc4681c::t_89c23bee54dc98 1-607242
+third_party/deps/cuda/src/scanner.c
+  s_6375756fc4681c::t_9bc42530d4c44f 1-148
+third_party/deps/cuda/src/tree_sitter/alloc.h
+  s_6375756fc4681c::t_95326b9a99750b 1-54
+third_party/deps/cuda/src/tree_sitter/array.h
+  s_6375756fc4681c::t_1447cec851318b 1-291
+third_party/deps/cuda/src/tree_sitter/parser.h
+  s_6375756fc4681c::t_6d47eb3c1c542b 1-286
+third_party/deps/dart/LICENSE
+  s_6375756fc4681c::t_ed669f595c1159 1-20
+third_party/deps/dart/src/parser.c
+  s_6375756fc4681c::t_6432f660f68546 1-227300
+third_party/deps/dart/src/scanner.c
+  s_6375756fc4681c::t_8064e1da5ecf9e 1-130
+third_party/deps/dart/src/tree_sitter/alloc.h
+  s_6375756fc4681c::t_76d51ac8d04c2d 1-54
+third_party/deps/dart/src/tree_sitter/array.h
+  s_6375756fc4681c::t_1178e126acc59a 1-330
+third_party/deps/dart/src/tree_sitter/parser.h
+  s_6375756fc4681c::t_b8ed40b760a601 1-286
+third_party/deps/elixir/LICENSE
+  s_6375756fc4681c::t_853cacd30ab2c2 1-176
+third_party/deps/elixir/NOTICE
+  s_6375756fc4681c::t_59577ab638c29b 1-68
+third_party/deps/elixir/src/parser.c
+  s_6375756fc4681c::t_917a5f16b574c4 1-428397
+third_party/deps/elixir/src/scanner.c
+  s_6375756fc4681c::t_4194cdc9d32042 1-638
+third_party/deps/elixir/src/tree_sitter/alloc.h
+  s_6375756fc4681c::t_437ea0d8483a47 1-54
+third_party/deps/elixir/src/tree_sitter/array.h
+  s_6375756fc4681c::t_36469b34173ede 1-290
+third_party/deps/elixir/src/tree_sitter/parser.h
+  s_6375756fc4681c::t_ad6f86293298b8 1-266
+third_party/deps/html/LICENSE
+  s_6375756fc4681c::t_a00d7a6ab006e1 1-21
+third_party/deps/html/src/parser.c
+  s_6375756fc4681c::t_afbe230d64b256 1-2300
+third_party/deps/html/src/scanner.c
+  s_6375756fc4681c::t_d07bce9c5e7b4b 1-362
+third_party/deps/html/src/tag.h
+  s_6375756fc4681c::t_5b6603c48b2f5b 1-385
+third_party/deps/html/src/tree_sitter/alloc.h
+  s_6375756fc4681c::t_a1a3ff1979bc27 1-54
+third_party/deps/html/src/tree_sitter/array.h
+  s_6375756fc4681c::t_58e028a7d68aa3 1-290
+third_party/deps/html/src/tree_sitter/parser.h
+  s_6375756fc4681c::t_6ac99b8fdcb10c 1-265
+third_party/deps/javascript/LICENSE
+  s_6375756fc4681c::t_fbbb7c281572d3 1-21
+third_party/deps/javascript/src/parser.c
+  s_6375756fc4681c::t_8c4a037e9d7499 1-83523
+third_party/deps/javascript/src/scanner.c
+  s_6375756fc4681c::t_a43f24329f55ff 1-364
+third_party/deps/javascript/src/tree_sitter/alloc.h
+  s_6375756fc4681c::t_24c374a91965f2 1-54
+third_party/deps/javascript/src/tree_sitter/array.h
+  s_6375756fc4681c::t_8bf7e29e65b5d9 1-290
+third_party/deps/javascript/src/tree_sitter/parser.h
+  s_6375756fc4681c::t_1395922ace7d0e 1-266
+third_party/deps/json/LICENSE
+  s_6375756fc4681c::t_83b20709924d74 1-21
+third_party/deps/json/src/parser.c
+  s_6375756fc4681c::t_898bdc52459550 1-1061
+third_party/deps/json/src/tree_sitter/alloc.h
+  s_6375756fc4681c::t_8f57725668bb78 1-54
+third_party/deps/json/src/tree_sitter/array.h
+  s_6375756fc4681c::t_320ed441854286 1-290
+third_party/deps/json/src/tree_sitter/parser.h
+  s_6375756fc4681c::t_5e0f37a17c89d5 1-266
+third_party/deps/kotlin/LICENSE
+  s_6375756fc4681c::t_ff4fa203e23fa1 1-9
+third_party/deps/kotlin/src/parser.c
+  s_6375756fc4681c::t_34806a20ee8b06 1-902345
+third_party/deps/kotlin/src/scanner.c
+  s_6375756fc4681c::t_915fb69de5bf7f 1-1007
+third_party/deps/kotlin/src/tree_sitter/alloc.h
+  s_6375756fc4681c::t_e384d6201e22ea 1-54
+third_party/deps/kotlin/src/tree_sitter/array.h
+  s_6375756fc4681c::t_d580ba1e5b1041 1-291
+third_party/deps/kotlin/src/tree_sitter/parser.h
+  s_6375756fc4681c::t_02f9ee20511714 1-266
+third_party/deps/lua/LICENSE
+  s_6375756fc4681c::t_3b14f182c50e82 1-21
+third_party/deps/lua/src/parser.c
+  s_6375756fc4681c::t_69098e16d21818 1-13822
+third_party/deps/lua/src/scanner.c
+  s_6375756fc4681c::t_df50d3a577b8e3 1-200
+third_party/deps/lua/src/tree_sitter/alloc.h
+  s_6375756fc4681c::t_71175759d153c8 1-54
+third_party/deps/lua/src/tree_sitter/array.h
+  s_6375756fc4681c::t_2c801a7f453344 1-330
+third_party/deps/lua/src/tree_sitter/parser.h
+  s_6375756fc4681c::t_11435d253b2a75 1-286
+third_party/deps/markdown/LICENSE
+  s_6375756fc4681c::t_69bf3737074650 1-21
+third_party/deps/markdown/src/parser.c
+  s_6375756fc4681c::t_35633372a93dbf 1-59787
+third_party/deps/markdown/src/scanner.c
+  s_6375756fc4681c::t_b3d10fae686df9 1-1658
+third_party/deps/markdown/src/tree_sitter/alloc.h
+  s_6375756fc4681c::t_d938783cc89152 1-54
+third_party/deps/markdown/src/tree_sitter/array.h
+  s_6375756fc4681c::t_30f8dc0ae00150 1-330
+third_party/deps/markdown/src/tree_sitter/parser.h
+  s_6375756fc4681c::t_8c64435b2d457e 1-286
+third_party/deps/objc/LICENSE
+  s_6375756fc4681c::t_4ca7994e52d777 1-21
+third_party/deps/objc/src/parser.c
+  s_6375756fc4681c::t_e83ce6ced64c9d 1-682692
+third_party/deps/objc/src/tree_sitter/alloc.h
+  s_6375756fc4681c::t_6a10c91ea8a057 1-54
+third_party/deps/objc/src/tree_sitter/array.h
+  s_6375756fc4681c::t_4b230a230dc07f 1-291
+third_party/deps/objc/src/tree_sitter/parser.h
+  s_6375756fc4681c::t_70394edb5d24df 1-266
+third_party/deps/php/LICENSE
+  s_6375756fc4681c::t_08f12d772f1a57 1-22
+third_party/deps/php/common/scanner.h
+  s_6375756fc4681c::t_4790853becb9e0 1-543
+third_party/deps/php/php/src/parser.c
+  s_6375756fc4681c::t_8806b2179b4ac9 1-194155
+third_party/deps/php/php/src/scanner.c
+  s_6375756fc4681c::t_c64ca208d2140e 1-17
+third_party/deps/php/php/src/tree_sitter/alloc.h
+  s_6375756fc4681c::t_b62b78d9c5a0b7 1-54
+third_party/deps/php/php/src/tree_sitter/array.h
+  s_6375756fc4681c::t_de77ab6584b39f 1-291
+third_party/deps/php/php/src/tree_sitter/parser.h
+  s_6375756fc4681c::t_59ee62fb196abf 1-286
+third_party/deps/python/LICENSE
+  s_6375756fc4681c::t_0ddb0b9c080833 1-21
+third_party/deps/python/src/parser.c
+  s_6375756fc4681c::t_ad1d09dd34dcc1 1-130198
+third_party/deps/python/src/scanner.c
+  s_6375756fc4681c::t_cf1e6c3d5b31b1 1-433
+third_party/deps/python/src/tree_sitter/alloc.h
+  s_6375756fc4681c::t_037f4c0c71555d 1-54
+third_party/deps/python/src/tree_sitter/array.h
+  s_6375756fc4681c::t_a56eff9dacc629 1-291
+third_party/deps/python/src/tree_sitter/parser.h
+  s_6375756fc4681c::t_64e55a2d812d07 1-266
+third_party/deps/ruby/LICENSE
+  s_6375756fc4681c::t_f2b4c559d8d2a8 1-22
+third_party/deps/ruby/src/parser.c
+  s_6375756fc4681c::t_e46c49cb4d1d37 1-471247
+third_party/deps/ruby/src/scanner.c
+  s_6375756fc4681c::t_5719f41d3a542c 1-1107
+third_party/deps/ruby/src/tree_sitter/alloc.h
+  s_6375756fc4681c::t_c7a315f342b691 1-54
+third_party/deps/ruby/src/tree_sitter/array.h
+  s_6375756fc4681c::t_a4e5e1405bceca 1-290
+third_party/deps/ruby/src/tree_sitter/parser.h
+  s_6375756fc4681c::t_114fbc8a37654a 1-266
+third_party/deps/rust/LICENSE
+  s_6375756fc4681c::t_6ecde59b74ec70 1-21
+third_party/deps/rust/src/parser.c
+  s_6375756fc4681c::t_d801e8220d73a5 1-195977
+third_party/deps/rust/src/scanner.c
+  s_6375756fc4681c::t_c94c9ddd489708 1-399
+third_party/deps/rust/src/tree_sitter/alloc.h
+  s_6375756fc4681c::t_5b8d0d01c030ba 1-54
+third_party/deps/rust/src/tree_sitter/array.h
+  s_6375756fc4681c::t_a043653fd58ca7 1-290
+third_party/deps/rust/src/tree_sitter/parser.h
+  s_6375756fc4681c::t_833ab354f64068 1-266
+third_party/deps/swift/LICENSE
+  s_6375756fc4681c::t_9c19576b17cb93 1-21
+third_party/deps/swift/src/parser.c
+  s_6375756fc4681c::t_fb076805e19d9c 1-615415
+third_party/deps/swift/src/scanner.c
+  s_6375756fc4681c::t_437d6f6f1047e9 1-933
+third_party/deps/swift/src/tree_sitter/alloc.h
+  s_6375756fc4681c::t_240cc1535ae770 1-54
+third_party/deps/swift/src/tree_sitter/array.h
+  s_6375756fc4681c::t_b2eacd438860b7 1-290
+third_party/deps/swift/src/tree_sitter/parser.h
+  s_6375756fc4681c::t_40052ed42fccf9 1-266
+third_party/deps/toml/LICENSE
+  s_6375756fc4681c::t_874d20d9f520e3 1-21
+third_party/deps/toml/src/parser.c
+  s_6375756fc4681c::t_6ed7301bc60724 1-4739
+third_party/deps/toml/src/scanner.c
+  s_6375756fc4681c::t_7e719ce2c77423 1-82
+third_party/deps/toml/src/tree_sitter/alloc.h
+  s_6375756fc4681c::t_c87e8c691b7a4a 1-54
+third_party/deps/toml/src/tree_sitter/array.h
+  s_6375756fc4681c::t_dd393b4735d4f9 1-290
+third_party/deps/toml/src/tree_sitter/parser.h
+  s_6375756fc4681c::t_370e3ced681893 1-266
+third_party/deps/ts_typescript/LICENSE
+  s_6375756fc4681c::t_7104eb156b151c 1-21
+third_party/deps/ts_typescript/common/scanner.h
+  s_6375756fc4681c::t_24f3495731caf7 1-347
+third_party/deps/ts_typescript/tsx/src/parser.c
+  s_6375756fc4681c::t_7b297a7889a1b5 1-282955
+third_party/deps/ts_typescript/tsx/src/scanner.c
+  s_6375756fc4681c::t_db1b65d9b2b6f1 1-13
+third_party/deps/ts_typescript/tsx/src/tree_sitter/alloc.h
+  s_6375756fc4681c::t_96f121b3edb82c 1-54
+third_party/deps/ts_typescript/tsx/src/tree_sitter/array.h
+  s_6375756fc4681c::t_b4c1e614d0274b 1-290
+third_party/deps/ts_typescript/tsx/src/tree_sitter/parser.h
+  s_6375756fc4681c::t_185eb2b7d94fa4 1-266
+third_party/deps/ts_typescript/typescript/src/parser.c
+  s_6375756fc4681c::t_deee8555796edf 1-282437
+third_party/deps/ts_typescript/typescript/src/scanner.c
+  s_6375756fc4681c::t_e314caae4c4996 1-13
+third_party/deps/ts_typescript/typescript/src/tree_sitter/alloc.h
+  s_6375756fc4681c::t_05fe019552e9fe 1-54
+third_party/deps/ts_typescript/typescript/src/tree_sitter/array.h
+  s_6375756fc4681c::t_b109f84ba326bd 1-290
+third_party/deps/ts_typescript/typescript/src/tree_sitter/parser.h
+  s_6375756fc4681c::t_4fe975f8c9d3b6 1-266
+third_party/deps/yaml/LICENSE
+  s_6375756fc4681c::t_1081e97ca948f0 1-20
+third_party/deps/yaml/src/parser.c
+  s_6375756fc4681c::t_c426f9bf30b8b3 1-41384
+third_party/deps/yaml/src/scanner.c
+  s_6375756fc4681c::t_e3444b7da286ca 1-1437
+third_party/deps/yaml/src/schema.core.c
+  s_6375756fc4681c::t_d7ae3fad40b939 1-204
+third_party/deps/yaml/src/tree_sitter/alloc.h
+  s_6375756fc4681c::t_9b0d78496a29e8 1-54
+third_party/deps/yaml/src/tree_sitter/array.h
+  s_6375756fc4681c::t_438e853a8f8e21 1-291
+third_party/deps/yaml/src/tree_sitter/parser.h
+  s_6375756fc4681c::t_787c76e175fbcb 1-286
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.11",
+  "base_commit_sha": "d43acae5136ed354c222266f741ca3f6c0ab1b40",
+  "prompts": {},
+  "sessions": {
+    "s_6375756fc4681c": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_f6d22c3f1ffe2RNQxUoYBDMJ2x",
+        "model": "deepseek-v4-flash"
+      },
+      "human_author": "Adib Farrasy <adibfarrasy@gmail.com>"
+    }
+  }
+}
