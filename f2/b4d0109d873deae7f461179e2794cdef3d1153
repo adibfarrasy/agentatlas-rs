@@ -1,0 +1,29 @@
+src/cli.rs
+  s_f6b1348bf78bec::t_e8fcd9d99ca871 16
+  s_f6b1348bf78bec::t_0e009f72ad1977 37
+  s_f6b1348bf78bec::t_45fa5ee0842fc5 70-73
+  s_f6b1348bf78bec::t_d366932e3e7b57 153
+test/cachecheck.sh
+  s_f6b1348bf78bec::t_4f651d14b284bf 1-16
+src/main.rs
+  s_f6b1348bf78bec::t_2b115ad7cff142 42-45,51
+src/serialize.rs
+  s_f6b1348bf78bec::t_0584ba3360046e 130
+  s_f6b1348bf78bec::t_4cbdc27c231ffe 190-191
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.11",
+  "base_commit_sha": "f2b4d0109d873deae7f461179e2794cdef3d1153",
+  "prompts": {},
+  "sessions": {
+    "s_f6b1348bf78bec": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_f6735a647ffeLDD0x0yys0Vekm",
+        "model": "deepseek-v4-flash"
+      },
+      "human_author": "Adib Farrasy <adibfarrasy@gmail.com>"
+    }
+  }
+}
