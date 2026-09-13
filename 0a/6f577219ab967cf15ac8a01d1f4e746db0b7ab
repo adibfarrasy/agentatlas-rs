@@ -1,0 +1,21 @@
+test/gaincheck.sh
+  s_f6b1348bf78bec::t_c0bb0957df53e9 13
+src/gain.rs
+  s_f6b1348bf78bec::t_6ee0fb319ce865 297-300
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.11",
+  "base_commit_sha": "0a6f577219ab967cf15ac8a01d1f4e746db0b7ab",
+  "prompts": {},
+  "sessions": {
+    "s_f6b1348bf78bec": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_f6735a647ffeLDD0x0yys0Vekm",
+        "model": "deepseek-v4-flash"
+      },
+      "human_author": "Adib Farrasy <adibfarrasy@gmail.com>"
+    }
+  }
+}
