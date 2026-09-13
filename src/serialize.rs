@@ -127,7 +127,7 @@ pub fn sym_tag(kind: &str) -> &str {
     }
 }
 
-pub fn serialize(ing: &Ingest, g: &Graph, rank: &RankRun, root: &str) -> String {
+pub fn serialize(ing: &Ingest, g: &Graph, rank: &RankRun, root: &str, cache: &str) -> String {
     let full_path = |rel: &str| -> String { format!("{}/{}", root.trim_end_matches('/'), rel) };
     // Order symbols by (rank DESC, id ASC). Node ids are ingest order (file, line, name).
     let n = ing.symbols.len();
@@ -187,8 +187,8 @@ pub fn serialize(ing: &Ingest, g: &Graph, rank: &RankRun, root: &str) -> String 
     // Build head at a given est_tokens value (fixpoint).
     let stats = |est: usize| -> String {
         format!(
-            "<!-- files={} symbols={} edges={} shown={} est_tokens={} ambiguous=0 unresolved=0 order=important-first -->",
-            ing.files.len(), n, g.out_edges.len(), n, est
+            "<!-- files={} symbols={} edges={} shown={} est_tokens={} ambiguous=0 unresolved=0 order=important-first cache=\"{}\" -->",
+            ing.files.len(), n, g.out_edges.len(), n, est, cache
         )
     };
     let head = |est: usize| -> String {

@@ -13,6 +13,7 @@ pub struct Config {
     pub gain: bool,
     pub no_gain_log: bool,
     pub gain_log: Option<String>,
+    pub no_cache: bool,
     pub top_k: Option<usize>,
     pub legend: Option<String>,
 }
@@ -33,6 +34,7 @@ impl Config {
             gain: false,
             no_gain_log: false,
             gain_log: None,
+            no_cache: false,
             top_k: None,
             legend: None,
         };
@@ -65,8 +67,10 @@ impl Config {
                 c.top_k = v.parse().ok();
             } else if let Some(v) = a.strip_prefix("--legend=") {
                 c.legend = Some(v.to_string());
-            } else if a == "--no-cache" || a == "--mcp" {
-                // accepted, no effect (no cache yet; MCP dropped)
+            } else if a == "--no-cache" {
+                c.no_cache = true;
+            } else if a == "--mcp" {
+                // accepted, no effect (MCP dropped)
             } else if !a.starts_with("--") {
                 c.root = a.clone();
             }
@@ -146,6 +150,7 @@ OPTIONS
   --top-k=N          cap the ranked rows
   --gain-log=FILE    where the savings ledger lives (env RIPWIRE_GAIN_LOG)
   --no-gain-log      don't log this run
+  --no-cache         don't reuse the per-repo index cache
   --legend=compact   shorter legend on the map
 
 OUTPUT
