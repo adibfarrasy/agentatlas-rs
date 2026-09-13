@@ -1,0 +1,22 @@
+README.md
+  s_f6b1348bf78bec::t_ec924c81658f21 48
+test/cachecheck.sh
+  s_f6b1348bf78bec::t_0240637d077e3b 2,11,14,17-47,49-51
+  s_f6b1348bf78bec::t_a763d6e86c9888 48
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.11",
+  "base_commit_sha": "a4bdd6086150c99fe47be5b1716ad58f15bdfd39",
+  "prompts": {},
+  "sessions": {
+    "s_f6b1348bf78bec": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_f6735a647ffeLDD0x0yys0Vekm",
+        "model": "deepseek-v4-flash"
+      },
+      "human_author": "Adib Farrasy <adibfarrasy@gmail.com>"
+    }
+  }
+}
