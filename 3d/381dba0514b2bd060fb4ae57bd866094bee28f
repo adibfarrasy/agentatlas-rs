@@ -1,0 +1,23 @@
+test/golden/map-golang
+  s_f6b1348bf78bec::t_22d02cc5396168 1
+test/parity.sh
+  s_f6b1348bf78bec::t_3e822373a18fe2 9-12
+test/golden/map-java
+  s_f6b1348bf78bec::t_22d02cc5396168 1
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.11",
+  "base_commit_sha": "3d381dba0514b2bd060fb4ae57bd866094bee28f",
+  "prompts": {},
+  "sessions": {
+    "s_f6b1348bf78bec": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_f6735a647ffeLDD0x0yys0Vekm",
+        "model": "deepseek-v4-flash"
+      },
+      "human_author": "Adib Farrasy <adibfarrasy@gmail.com>"
+    }
+  }
+}
