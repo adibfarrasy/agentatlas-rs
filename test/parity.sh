@@ -6,6 +6,10 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 BIN="${BIN:-./target/debug/agentatlas}"
 
+# Isolate the index cache: a fresh cache dir per run keeps every fixture's first access a
+# "rebuilt", matching the committed goldens regardless of any prior cached state.
+export AGENTATLAS_CACHE_DIR="$(mktemp -d)"
+
 # git-free fixture root, same layout the goldens were captured from
 rm -rf /tmp/golden-root
 mkdir -p /tmp/golden-root
