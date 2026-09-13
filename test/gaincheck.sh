@@ -10,7 +10,7 @@ LED="$TMP/gain.jsonl"
 # absent ledger → honest message, not a fabricated zero
 out="$("$BIN" gain --gain-log="$LED" 2>/dev/null || true)"
 case "$out" in
-    *"no ledger"*) echo "OK: absent-ledger message" ;;
+    *"nothing recorded yet"*) echo "OK: absent-ledger message" ;;
     *) echo "FAIL: absent ledger"; exit 1 ;;
 esac
 

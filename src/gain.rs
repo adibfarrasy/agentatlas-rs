@@ -294,6 +294,10 @@ pub fn render(r: &GainReport, _rate: f64, ledger: &str) -> String {
     for (verb, n, st) in &r.per_verb {
         out.push_str(&format!("  {:<24} {:>4}  {}\n", verb, n, short(*st as i64)));
     }
+    if r.unmodeled > 0 {
+        out.push_str(&format!("unmodeled-runs {}\n", r.unmodeled));
+        out.push_str("note: those runs had no file-set (analyze-like verbs) — logged spent-only, savings not modeled.\n");
+    }
     if r.saved_tokens < 0 {
         out.push_str("\nnote: savings are negative — the answer cost more than reading those files directly.\n");
         out.push_str("That is expected on small repos/single files (the bundle carries a legend + context).\n");
