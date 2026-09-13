@@ -1,0 +1,19 @@
+Cargo.toml
+  s_f6b1348bf78bec::t_f989689bff7fc3 3
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.11",
+  "base_commit_sha": "8b5ac6c6a41c14046b43b23d1f76a4d85f2565ff",
+  "prompts": {},
+  "sessions": {
+    "s_f6b1348bf78bec": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_f6735a647ffeLDD0x0yys0Vekm",
+        "model": "deepseek-v4-flash"
+      },
+      "human_author": "Adib Farrasy <adibfarrasy@gmail.com>"
+    }
+  }
+}
