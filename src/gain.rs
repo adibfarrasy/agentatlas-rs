@@ -14,7 +14,7 @@ pub struct GainRow {
     pub model: String, // "file-set" | "none"
 }
 
-fn xdg_data_home() -> String {
+pub(crate) fn xdg_data_home() -> String {
     if let Ok(d) = std::env::var("XDG_DATA_HOME") {
         if !d.is_empty() {
             return format!("{}/agentatlas", d.trim_end_matches('/'));

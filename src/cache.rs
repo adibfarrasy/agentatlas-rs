@@ -243,11 +243,157 @@ pub fn load(path: &str) -> Option<(Manifest, Ingest)> {
     ))
 }
 
+use crate::crawl::StatEntry;
+use std::collections::HashMap;
+
+pub enum Source {
+    Hit { ing: Ingest },
+    Rebuilt { ing: Ingest },
+}
+
+fn cache_dir() -> String {
+    if let Ok(d) = std::env::var("AGENTATLAS_CACHE_DIR") {
+        if !d.is_empty() {
+            return d;
+        }
+    }
+    format!("{}/cache", crate::gain::xdg_data_home())
+}
+
+fn cache_path_in(cdir: &str, root: &str) -> Option<String> {
+    let canon = Path::new(root).canonicalize().ok()?;
+    let key = fnv1a(canon.to_string_lossy().as_bytes());
+    Some(format!("{cdir}/{:016x}.dat", key))
+}
+
+/// Stat-only walk of the repo, as (relpath, len, mtime_nanos).
+fn walk(root: &Path) -> Vec<(String, u64, u64)> {
+    crate::crawl::enumerate(root)
+        .into_iter()
+        .map(|e| (e.path, e.len, e.mtime_nanos))
+        .collect()
+}
+
+struct Diff {
+    /// stat entries that are new or whose (len, mtime) differ from the manifest
+    changed: Vec<StatEntry>,
+    /// manifest paths absent from the current tree (deleted files)
+    missing: Vec<String>,
+}
+
+fn diff(manifest: &Manifest, stats: &[(String, u64, u64)]) -> Diff {
+    let mut present: HashMap<&str, ()> = HashMap::new();
+    let mut changed: Vec<StatEntry> = Vec::new();
+    for (path, len, mtime) in stats {
+        present.insert(path.as_str(), ());
+        let m = manifest.files.iter().find(|f| f.path == *path);
+        match m {
+            Some(mf) if mf.len == *len && mf.mtime_nanos == *mtime => {}
+            _ => changed.push(StatEntry {
+                path: path.clone(),
+                len: *len,
+                mtime_nanos: *mtime,
+            }),
+        }
+    }
+    let missing: Vec<String> = manifest
+        .files
+        .iter()
+        .filter(|f| !present.contains_key(f.path.as_str()))
+        .map(|f| f.path.clone())
+        .collect();
+    Diff { changed, missing }
+}
+
+pub fn get(root: &str, no_cache: bool) -> Source {
+    get_with(root, no_cache, &cache_dir())
+}
+
+fn get_with(root: &str, no_cache: bool, cdir: &str) -> Source {
+    if no_cache {
+        return rebuild(root, None);
+    }
+    let Some(cpath) = cache_path_in(cdir, root) else {
+        return rebuild(root, None);
+    };
+    let Some((mut manifest, ing)) = load(&cpath) else {
+        return rebuild(root, Some(&cpath));
+    };
+    let stats = walk(Path::new(root));
+    let d = diff(&manifest, &stats);
+    if d.changed.is_empty() && d.missing.is_empty() {
+        return Source::Hit { ing };
+    }
+    if !d.missing.is_empty() {
+        return rebuild(root, Some(&cpath));
+    }
+    // Hash-verify: a stat change that leaves the content identical (touch / git checkout) is mtime
+    // noise → stay a hit and refresh the manifest. Any content change, or a new file, → rebuild.
+    let mut real_change = false;
+    let mut refreshed: Vec<&StatEntry> = Vec::new();
+    for e in &d.changed {
+        let Ok(bytes) = std::fs::read(Path::new(root).join(&e.path)) else {
+            real_change = true;
+            break;
+        };
+        let h = fnv1a(&bytes);
+        let m = manifest.files.iter().find(|f| f.path == e.path);
+        match m {
+            Some(mf) if mf.hash == h => refreshed.push(e),
+            _ => {
+                real_change = true;
+                break;
+            }
+        }
+    }
+    if real_change {
+        return rebuild(root, Some(&cpath));
+    }
+    for e in refreshed {
+        if let Some(mf) = manifest.files.iter_mut().find(|f| f.path == e.path) {
+            mf.mtime_nanos = e.mtime_nanos;
+        }
+    }
+    save(&cpath, &manifest, &ing, root);
+    Source::Hit { ing }
+}
+
+fn rebuild(root: &str, cpath: Option<&str>) -> Source {
+    let files = crate::crawl::crawl(Path::new(root));
+    let ing = crate::ingest::ingest(&files, root);
+    if let Some(cp) = cpath {
+        save(cp, &build_manifest(&files, root), &ing, root);
+    }
+    Source::Rebuilt { ing }
+}
+
+fn build_manifest(files: &[crate::crawl::FileEntry], root: &str) -> Manifest {
+    let mut mf = Vec::with_capacity(files.len());
+    for f in files {
+        let full = format!("{root}/{}", f.path);
+        let meta = std::fs::metadata(&full).ok();
+        let len = meta.as_ref().map(|m| m.len()).unwrap_or(0);
+        let mtime = meta
+            .as_ref()
+            .and_then(|m| m.modified().ok())
+            .and_then(|t| t.duration_since(std::time::UNIX_EPOCH).ok())
+            .map(|d| d.as_nanos() as u64)
+            .unwrap_or(0);
+        let bytes = std::fs::read(&full).unwrap_or_default();
+        mf.push(ManifestFile {
+            path: f.path.clone(),
+            len,
+            mtime_nanos: mtime,
+            hash: fnv1a(&bytes),
+        });
+    }
+    Manifest { files: mf }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::ingest::{Ingest, Reference, Symbol};
-    use std::path::PathBuf;
 
     #[test]
     fn fnv1a_known_vectors() {
@@ -324,5 +470,125 @@ mod tests {
         std::fs::write(&tmp, "A1 99.99.99 /repo 0 0 0\n").unwrap();
         assert!(load(tmp.to_str().unwrap()).is_none());
         let _ = std::fs::remove_file(&tmp);
+    }
+
+    fn to_stats(entries: &[StatEntry]) -> Vec<(String, u64, u64)> {
+        entries
+            .iter()
+            .map(|e| (e.path.clone(), e.len, e.mtime_nanos))
+            .collect()
+    }
+
+    fn write_tree(root: &Path) -> Vec<StatEntry> {
+        std::fs::create_dir_all(root).unwrap();
+        std::fs::write(root.join("a.go"), b"package a\nfunc A(){}\n").unwrap();
+        std::fs::write(root.join("b.go"), b"package a\nfunc B(){}\n").unwrap();
+        crate::crawl::enumerate(root)
+    }
+
+    fn hash_path(root: &Path, rel: &str) -> u64 {
+        fnv1a(&std::fs::read(root.join(rel)).unwrap())
+    }
+
+    fn manifest_of(root: &Path, stats: &[StatEntry]) -> Manifest {
+        let files = stats
+            .iter()
+            .map(|e| ManifestFile {
+                path: e.path.clone(),
+                len: e.len,
+                mtime_nanos: e.mtime_nanos,
+                hash: hash_path(root, &e.path),
+            })
+            .collect();
+        Manifest { files }
+    }
+
+    #[test]
+    fn diff_detects_no_change() {
+        let root = std::env::temp_dir().join("agentatlas-diff-none");
+        let stats = write_tree(&root);
+        let manifest = manifest_of(&root, &stats);
+        let d = diff(&manifest, &to_stats(&stats));
+        assert!(d.changed.is_empty());
+        assert!(d.missing.is_empty());
+        let _ = std::fs::remove_dir_all(&root);
+    }
+
+    #[test]
+    fn diff_detects_mtime_and_new() {
+        let root = std::env::temp_dir().join("agentatlas-diff-mt");
+        let stats = write_tree(&root);
+        let manifest = manifest_of(&root, &stats);
+        std::fs::write(root.join("c.go"), b"package a\n").unwrap();
+        let mut stats2 = crate::crawl::enumerate(&root);
+        let a = stats2.iter_mut().find(|e| e.path == "a.go").unwrap();
+        a.mtime_nanos += 1;
+        let d = diff(&manifest, &to_stats(&stats2));
+        assert!(d.changed.iter().any(|e| e.path == "a.go"));
+        assert!(d.changed.iter().any(|e| e.path == "c.go"));
+        assert!(d.missing.is_empty());
+        let _ = std::fs::remove_dir_all(&root);
+    }
+
+    #[test]
+    fn diff_detects_deleted() {
+        let root = std::env::temp_dir().join("agentatlas-diff-del");
+        let stats = write_tree(&root);
+        let manifest = manifest_of(&root, &stats);
+        std::fs::remove_file(root.join("b.go")).unwrap();
+        let stats2 = crate::crawl::enumerate(&root);
+        let d = diff(&manifest, &to_stats(&stats2));
+        assert!(d.missing.iter().any(|p| p == "b.go"));
+        let _ = std::fs::remove_dir_all(&root);
+    }
+
+    #[test]
+    fn get_with_hit_then_rebuilt() {
+        let root = std::env::temp_dir().join("agentatlas-get-root");
+        let cdir = std::env::temp_dir().join("agentatlas-get-cache");
+        let _ = std::fs::remove_dir_all(&root);
+        let _ = std::fs::remove_dir_all(&cdir);
+        std::fs::create_dir_all(&root).unwrap();
+        std::fs::write(root.join("a.go"), b"package a\nfunc A(){}\n").unwrap();
+        let r = root.to_str().unwrap();
+        let c = cdir.to_str().unwrap();
+
+        let first = get_with(r, false, c);
+        assert!(matches!(first, Source::Rebuilt { .. }));
+
+        let second = get_with(r, false, c);
+        let third = get_with(r, false, c);
+        match (&second, &third) {
+            (Source::Hit { ing: a }, Source::Hit { ing: b }) => {
+                assert_eq!(a.files, b.files);
+                assert_eq!(a.symbols.len(), b.symbols.len());
+            }
+            _ => panic!("expected two hits"),
+        }
+
+        std::fs::write(root.join("a.go"), b"package a\nfunc A(){}\nfunc B(){}\n").unwrap();
+        let changed = get_with(r, false, c);
+        assert!(matches!(changed, Source::Rebuilt { .. }));
+
+        let _ = std::fs::remove_dir_all(&root);
+        let _ = std::fs::remove_dir_all(&cdir);
+    }
+
+    #[test]
+    fn no_cache_never_hits() {
+        let root = std::env::temp_dir().join("agentatlas-nocache-root");
+        let cdir = std::env::temp_dir().join("agentatlas-nocache-cache");
+        let _ = std::fs::remove_dir_all(&root);
+        let _ = std::fs::remove_dir_all(&cdir);
+        std::fs::create_dir_all(&root).unwrap();
+        std::fs::write(root.join("a.go"), b"package a\n").unwrap();
+        let r = root.to_str().unwrap();
+        let c = cdir.to_str().unwrap();
+        let a = get_with(r, true, c);
+        let b = get_with(r, true, c);
+        assert!(matches!(a, Source::Rebuilt { .. }));
+        assert!(matches!(b, Source::Rebuilt { .. }));
+        let _ = std::fs::remove_dir_all(&root);
+        let _ = std::fs::remove_dir_all(&cdir);
     }
 }
