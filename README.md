@@ -45,6 +45,7 @@ cargo build --release
 ```bash
 cargo test
 test/parity.sh            # byte-identical vs the committed ripwire golden outputs
+test/cachecheck.sh        # the index cache: hit, mtime-noise, rebuild, --no-cache, corrupt-fallback
 test/gaincheck.sh         # the gain ledger gate
 ```
 
