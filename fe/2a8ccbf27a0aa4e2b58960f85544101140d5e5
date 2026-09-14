@@ -1,0 +1,45 @@
+test/golden/verbs/grep-dist
+  s_f57444fc60ed48::t_5edfe0d55a760e 1
+test/golden/verbs/callees-main
+  s_f57444fc60ed48::t_5edfe0d55a760e 1
+test/golden/verbs/callers-dist
+  s_f57444fc60ed48::t_5edfe0d55a760e 1
+test/golden/verbs/impact-point
+  s_f57444fc60ed48::t_5edfe0d55a760e 1
+src/verbs.rs
+  s_f57444fc60ed48::t_4bbe6138e4aac3 269,281,284-287
+  s_f57444fc60ed48::t_3e84a74ea383c2 3
+  s_f57444fc60ed48::t_f8e6d386d9a271 184,190
+  s_f57444fc60ed48::t_bd6342cc9a2f9d 36
+  s_f57444fc60ed48::t_09fc487bda64ec 101,111,125,128-132
+  s_f57444fc60ed48::t_2ed9980cdca659 185-186,188
+  s_f57444fc60ed48::t_5c702def90f649 246,253,260-264
+test/golden/verbs/grep-point
+  s_f57444fc60ed48::t_5edfe0d55a760e 1
+src/legends.rs
+  s_f57444fc60ed48::t_ead66d8f20ac50 39
+  s_f57444fc60ed48::t_70a661b35cdb18 57
+  s_f57444fc60ed48::t_dff0a5977d05a8 25-38,40-53,55-56,58-59
+  s_f57444fc60ed48::t_75cf8ec6a3cb74 54
+test/golden/verbs/uses-point
+  s_f57444fc60ed48::t_5edfe0d55a760e 1
+src/extraverbs.rs
+  s_f57444fc60ed48::t_9a9725a2494ad9 94,97-102,104
+  s_f57444fc60ed48::t_3ff4eb996df2c3 3
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.11",
+  "base_commit_sha": "fe2a8ccbf27a0aa4e2b58960f85544101140d5e5",
+  "prompts": {},
+  "sessions": {
+    "s_f57444fc60ed48": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_f62b18555ffewZNY5GSNE37Xsj",
+        "model": "deepseek-v4-flash"
+      },
+      "human_author": "Adib Farrasy <adibfarrasy@gmail.com>"
+    }
+  }
+}
