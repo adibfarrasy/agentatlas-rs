@@ -22,3 +22,38 @@ pub const FT_PREFIX_TAIL: &str =
 // len=98
 pub const FT_SUFFIX: &str = r#" frame_lines = frame-shaped lines the INPUT presented (a #N marker, a leading "at ", or a Python File "..." line, plus every line that did extract); parsed = how many of them yielded a usable path:line, so frame_lines - parsed is the count that matched no format shape and enters no bucket below. in_corpus = suspects + merged + unresolved, so every file-matched frame is visible: merged= folded into an already-claimed symbol, unresolved= listed as <unresolved> (indexed file, no def by name or by line). resolved_by="name" means the frame's OWN function name bound to a unique def (line_encloses=, when present, names the different symbol today's line sits in: the tell that the trace predates this checkout); resolved_by="line" means the name was absent, unknown or ambiguous, so the def enclosing that line was used. p= on a frame is the FRAME's own locator (the trace's path:line, verbatim); definition sites live in <sigs> l=. On a <sigs> row (rows in r= order): n=name, id=canonical(when scoped), p=file, t=kind, cx=cyclomatic complexity, ccx=cognitive complexity, in=reuse-count (absent = not measured, never a false 0). rank 1 = the innermost in-corpus frame; its FULL body follows, other suspects as signatures. budget=7500 bytes (allowance 9583 bytes = ceiling + the single-entry overshoot a whole first signature costs). On the root: est_tokens= prices the delivered bundle in tokens, budget_tokens= is the token target you passed (absent when none), max_tokens= is the body ceiling you passed via the max_tokens flag (absent when none); over_ceiling= is 1 when est_tokens exceeds the smallest ceiling named here (the bundle is then complete, not trimmed). next= is the one pasteable follow-up: the slice at the innermost in-corpus frame (@FILE:LINE); absent when none landed. -->"#;
 // len=1792
+
+// Compact legends (agentatlas-authored, not ripwire-transcribed): emitted instead of the full
+// legend when the payload they would explain is smaller than the legend itself — a short schema
+// note beats a schema wall when there is barely anything to read.
+pub const GREP_COMPACT: &str = "<!-- ripwire grep: <hit l=LINE [in=NAME]>TEXT</hit>; in= enclosing symbol NAME, ABSENT=file scope (UNKNOWN, not file scope, when that file row carries parse_degraded=\"1\"); byte-identical re-matches in the same file fold into n=; <enc n=NAME callers=FAN-IN [cx=]> rows list each distinct enclosing name; ORDER src -> test/bench -> docs, then path+line; hits= is a FLOOR only when hits_capped=\"1\" (counts_floor=\"1\"); next= follow-up -->";
+// len=563
+pub const CALLERS_CALLEES_COMPACT: &str = "<!-- ripwire callers/callees: of= selector, defs= defs it resolved to, count= DISTINCT neighbour symbols (a FLOOR, counts_floor=\"1\"); callers= symbols that CALL of=, callees= symbols of= itself calls; t=\"macro\" row= edge crosses a #define expansion; bodyless_defs= (callees only) absent body => zero callees may mean no body to read; ORDER src -> test/bench -> docs, path+line; tested=\"1\"= an indexed test reaches it; next= follow-up -->";
+// len=493
+pub const USES_COMPACT: &str = "<!-- ripwire uses: role=call|macro|read|write|import|extends|type use-sites (a FLOOR, counts_floor=\"1\"); role=\"type\"= bare type mention, no call edge (C/C++/ObjC only); role=\"macro\"= function-like #define invocation; external=\"1\"= no def in the tree; \"file:name\" narrows defs= AND the role=\"call\" sites; ORDER src -> test/bench -> docs, path+line; next= follow-up -->";
+// len=413
+pub const IMPACT_COMPACT: &str = "<!-- ripwire impact: transitive blast radius via calls - symbols that reach of=; reaches= count (a FLOOR, counts_floor=\"1\"); <f via=\"import\"> rows = DIRECT file importers (not call reach, never added to reaches=); tested=\"1\"= an indexed test reaches it; limit=N raises the default cap; next= follow-up -->";
+// len=334
+
+/// Full legend when the payload is worth a schema wall; compact otherwise.
+pub fn pick<'a>(full: &'a str, compact: &'a str, payload_len: usize) -> &'a str {
+    if payload_len < full.len() {
+        compact
+    } else {
+        full
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn pick_compacts_when_payload_smaller_than_legend() {
+        assert_eq!(pick("F", "f", 0), "f");
+        assert_eq!(pick("F", "f", 1), "F");
+        assert_eq!(pick("FULL", "COMPACT", 3), "COMPACT");
+        assert_eq!(pick("FULL", "COMPACT", 4), "FULL");
+        assert_eq!(pick("FULL", "COMPACT", 9), "FULL");
+    }
+}

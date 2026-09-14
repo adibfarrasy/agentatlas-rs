@@ -1,6 +1,6 @@
 use crate::graph::Graph;
 use crate::ingest::{Ingest, Symbol};
-use crate::legends::{AT_LEGEND, IMPACT_LEGEND};
+use crate::legends::{AT_LEGEND, IMPACT_COMPACT, IMPACT_LEGEND};
 
 fn esc(s: &str) -> String {
     s.replace('&', "&amp;")
@@ -79,8 +79,6 @@ pub fn at(ing: &Ingest, root: &str, seed: &str) -> String {
 }
 
 pub fn impact(ing: &Ingest, g: &Graph, root: &str, sel: &str, pr_iters: u32) -> String {
-    let mut out = String::new();
-    out.push_str(IMPACT_LEGEND);
     let defs = resolve(ing, sel);
     let defs_count = defs.len();
     let mut reached: std::collections::HashSet<usize> = std::collections::HashSet::new();
@@ -93,10 +91,17 @@ pub fn impact(ing: &Ingest, g: &Graph, root: &str, sel: &str, pr_iters: u32) -> 
             }
         }
     }
-    out.push_str(&format!(
+    let payload = format!(
         "<impact of=\"{}\" defs=\"{}\" reaches=\"{}\" importers=\"0\" shown_importers=\"0\" importers_capped=\"0\" radius_tested=\"0\" radius_untested=\"0\" root=\"{}\" shown=\"0\" capped=\"0\" graph_ambiguous=\"0\" graph_unresolved=\"0\" counts_floor=\"1\" pr_iters=\"{}\" next=\"--safe-delete={}\"></impact>",
         esc(sel), defs_count, reached.len(), esc(root), pr_iters, esc(sel)
+    );
+    let mut out = String::new();
+    out.push_str(crate::legends::pick(
+        IMPACT_LEGEND,
+        IMPACT_COMPACT,
+        payload.len(),
     ));
+    out.push_str(&payload);
     out
 }
 

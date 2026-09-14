@@ -1,6 +1,6 @@
 use crate::graph::Graph;
 use crate::ingest::{Ingest, Symbol};
-use crate::legends::GREP_LEGEND;
+use crate::legends::{GREP_COMPACT, GREP_LEGEND};
 
 pub fn escape_xml(s: &str) -> String {
     s.replace('&', "&amp;")
@@ -33,8 +33,7 @@ fn fan_in(g: &Graph) -> Vec<u32> {
 
 pub fn grep(ing: &Ingest, g: &Graph, root: &str, pattern: &str) -> String {
     let fan_in = fan_in(g);
-    let mut out = String::new();
-    out.push_str(GREP_LEGEND);
+    let mut payload = String::new();
 
     let mut total_hits = 0usize;
     let mut file_blocks: Vec<String> = Vec::new();
@@ -99,7 +98,7 @@ pub fn grep(ing: &Ingest, g: &Graph, root: &str, pattern: &str) -> String {
         next
     };
 
-    out.push_str(&format!(
+    payload.push_str(&format!(
         "<grep pattern=\"{}\" root=\"{}\" files=\"{}\" hits=\"{}\" shown=\"{}\" capped=\"0\" hits_capped=\"0\" complete=\"1\" unindexed_hits=\"0\" unindexed_files_scanned=\"0\" next=\"{}\">",
         escape_xml(pattern),
         escape_xml(root),
@@ -109,7 +108,7 @@ pub fn grep(ing: &Ingest, g: &Graph, root: &str, pattern: &str) -> String {
         top_line
     ));
     for block in &file_blocks {
-        out.push_str(block);
+        payload.push_str(block);
     }
     for name in &enc_names {
         let row = ing
@@ -123,10 +122,14 @@ pub fn grep(ing: &Ingest, g: &Graph, root: &str, pattern: &str) -> String {
                 r.push_str(&format!(" cx=\"{}\"", s.cx));
             }
             r.push_str("/>");
-            out.push_str(&r);
+            payload.push_str(&r);
         }
     }
-    out.push_str("</grep>");
+    payload.push_str("</grep>");
+
+    let mut out = String::new();
+    out.push_str(crate::legends::pick(GREP_LEGEND, GREP_COMPACT, payload.len()));
+    out.push_str(&payload);
     out
 }
 pub fn callers(ing: &Ingest, g: &Graph, root: &str, sel: &str) -> String {
@@ -178,14 +181,13 @@ fn tested_reaches(ing: &Ingest, g: &Graph) -> Vec<bool> {
 }
 
 fn hierarchy(ing: &Ingest, g: &Graph, root: &str, sel: &str, which: &str) -> String {
-    use crate::legends::{CALLEES_LEGEND, CALLERS_LEGEND};
-    let legend = if which == "callers" {
-        CALLERS_LEGEND
+    use crate::legends::{CALLEES_LEGEND, CALLERS_LEGEND, CALLERS_CALLEES_COMPACT};
+    let (full, compact) = if which == "callers" {
+        (CALLERS_LEGEND, CALLERS_CALLEES_COMPACT)
     } else {
-        CALLEES_LEGEND
+        (CALLEES_LEGEND, CALLERS_CALLEES_COMPACT)
     };
-    let mut out = String::new();
-    out.push_str(legend);
+    let mut payload = String::new();
 
     let defs: Vec<usize> = ing
         .symbols
@@ -241,28 +243,30 @@ fn hierarchy(ing: &Ingest, g: &Graph, root: &str, sel: &str, which: &str) -> Str
     } else {
         format!("--expand={}", sel)
     };
-    out.push_str(&format!(
+    payload.push_str(&format!(
         "<{} of=\"{}\" defs=\"{}\" count=\"{}\" root=\"{}\" hop_tested=\"{}\" hop_untested=\"{}\" graph_ambiguous=\"0\" graph_unresolved=\"0\" counts_floor=\"1\" next=\"{}\">",
         which, crate::verbs::escape_xml(sel), defs.len(), neighbour_ids.len(),
         crate::verbs::escape_xml(root), hop_tested, hop_untested, crate::verbs::escape_xml(&next)
     ));
     for (_, _, id) in &rows {
         let s = &ing.symbols[*id];
-        out.push_str(&format!(
+        payload.push_str(&format!(
             "<s t=\"{}\" n=\"{}\" p=\"{}\"/>",
             sym_tag(s.kind),
             crate::verbs::escape_xml(&s.name),
             crate::verbs::escape_xml(&format!("{}:{}", ing.files[s.file_id], s.line))
         ));
     }
-    out.push_str(&format!("</{}>", which));
+    payload.push_str(&format!("</{}>", which));
+
+    let mut out = String::new();
+    out.push_str(crate::legends::pick(full, compact, payload.len()));
+    out.push_str(&payload);
     out
 }
 
 pub fn uses(ing: &Ingest, _g: &Graph, root: &str, sel: &str) -> String {
-    use crate::legends::USES_LEGEND;
-    let mut out = String::new();
-    out.push_str(USES_LEGEND);
+    use crate::legends::{USES_COMPACT, USES_LEGEND};
     let defs: Vec<usize> = ing
         .symbols
         .iter()
@@ -274,9 +278,12 @@ pub fn uses(ing: &Ingest, _g: &Graph, root: &str, sel: &str) -> String {
     // call/read/write/import/extends use-sites: for the Go+Java surface the only captured role is
     // call (a method_invocation / object_creation / call_expression resolving to a def of sel).
     // role="type" is C/C++/ObjC-only per the legend; Go composite literals are not calls.
-    out.push_str(&format!(
+    let payload = format!(
         "<uses of=\"{}\" defs=\"{}\" external=\"{}\" count=\"0\" root=\"{}\" graph_ambiguous=\"0\" graph_unresolved=\"0\" counts_floor=\"1\"></uses>",
         escape_xml(sel), defs.len(), external, escape_xml(root)
-    ));
+    );
+    let mut out = String::new();
+    out.push_str(crate::legends::pick(USES_LEGEND, USES_COMPACT, payload.len()));
+    out.push_str(&payload);
     out
 }
