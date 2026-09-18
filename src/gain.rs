@@ -103,6 +103,15 @@ pub fn log_run(ledger: &str, row: &GainRow) {
     }
 }
 
+/// Shorten a path for display: keep the tail, replace the dropped front with "...".
+fn shorten_path(s: &str, max: usize) -> String {
+    if s.len() <= max {
+        s.to_string()
+    } else {
+        format!("...{}", &s[s.len() - (max - 3)..])
+    }
+}
+
 /// Shorten a large number to a readable form: 43.3K, 1.2M, or the raw number.
 fn short(n: i64) -> String {
     let sign = if n < 0 { "-" } else { "" };
@@ -302,9 +311,19 @@ pub fn render(r: &GainReport, _rate: f64, ledger: &str) -> String {
         fmt_ms(r.saved_ms),
         r.saved_ms_pct
     ));
-    out.push_str("\nper-repo (runs, spent_tokens):\n");
-    for (repo, n, st) in &r.per_repo {
-        out.push_str(&format!("  {:<32} {:>4}  {}\n", repo, n, short(*st as i64)));
+    let mut ranked_repos: Vec<&(String, u64, u64)> = r.per_repo.iter().collect();
+    ranked_repos.sort_by(|a, b| b.2.cmp(&a.2));
+    out.push_str("\nper-repo (runs, spent_tokens), top 10 by spent_tokens:\n");
+    for (repo, n, st) in ranked_repos.iter().take(10) {
+        out.push_str(&format!(
+            "  {:<40} {:>4}  {}\n",
+            shorten_path(repo, 40),
+            n,
+            short(*st as i64)
+        ));
+    }
+    if ranked_repos.len() > 10 {
+        out.push_str(&format!("  ... and {} more repos\n", ranked_repos.len() - 10));
     }
     out.push_str("\nper-verb (runs, spent_tokens):\n");
     for (verb, n, st) in &r.per_verb {
