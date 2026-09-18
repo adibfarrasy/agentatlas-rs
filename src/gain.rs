@@ -116,6 +116,22 @@ fn short(n: i64) -> String {
     }
 }
 
+/// Format a millisecond duration as XhYmZs, dropping leading zero units.
+fn fmt_ms(n: i64) -> String {
+    let sign = if n < 0 { "-" } else { "" };
+    let total_secs = n.unsigned_abs() / 1000;
+    let h = total_secs / 3600;
+    let m = (total_secs % 3600) / 60;
+    let s = total_secs % 60;
+    if h > 0 {
+        format!("{sign}{h}h{m}m{s}s")
+    } else if m > 0 {
+        format!("{sign}{m}m{s}s")
+    } else {
+        format!("{sign}{s}s")
+    }
+}
+
 fn json_escape(s: &str) -> String {
     s.replace('\\', "\\\\").replace('"', "\\\"")
 }
@@ -273,17 +289,17 @@ pub fn render(r: &GainReport, _rate: f64, ledger: &str) -> String {
          spent_tokens   {}\n\
          naive_tokens   {}\n\
          saved_tokens   {} ({}%)\n\
-         spent_ms       {}\n\
-         naive_ms       {}\n\
-         saved_ms       {} ({}%)\n",
+         spent_time     {}\n\
+         naive_time     {}\n\
+         saved_time     {} ({}%)\n",
         r.runs,
         short(r.spent_tokens as i64),
         short(r.naive_tokens as i64),
         short(r.saved_tokens),
         r.saved_pct,
-        short(r.spent_ms as i64),
-        short(r.naive_ms as i64),
-        short(r.saved_ms),
+        fmt_ms(r.spent_ms as i64),
+        fmt_ms(r.naive_ms as i64),
+        fmt_ms(r.saved_ms),
         r.saved_ms_pct
     ));
     out.push_str("\nper-repo (runs, spent_tokens):\n");

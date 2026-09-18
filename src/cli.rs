@@ -75,7 +75,7 @@ impl Config {
                 c.no_cache = true;
             } else if a == "--mcp" {
                 // accepted, no effect (MCP dropped)
-            } else if !a.starts_with("--") {
+            } else if !a.starts_with('-') {
                 c.root = a.clone();
             }
         }

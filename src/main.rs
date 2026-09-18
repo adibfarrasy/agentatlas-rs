@@ -101,7 +101,9 @@ fn main() {
                 .duration_since(std::time::UNIX_EPOCH)
                 .map(|d| d.as_secs())
                 .unwrap_or(0),
-            repo: root.clone(),
+            repo: std::fs::canonicalize(&root)
+                .map(|p| p.to_string_lossy().into_owned())
+                .unwrap_or_else(|_| root.clone()),
             verb: verb_name.to_string(),
             spent_tokens,
             spent_ms: run_started.elapsed().as_millis() as u64,
