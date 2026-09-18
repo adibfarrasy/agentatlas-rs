@@ -48,33 +48,40 @@ pub fn at(ing: &Ingest, root: &str, seed: &str) -> String {
     let (f, line_s) = seed.rsplit_once(':').unwrap_or((seed, ""));
     let line: u32 = line_s.parse().unwrap_or(0);
     let file_id = ing.files.iter().position(|p| p == f).unwrap_or(0);
-    let mut out = String::new();
-    out.push_str(AT_LEGEND);
     let syms: Vec<&Symbol> = ing
         .symbols
         .iter()
         .filter(|s| s.file_id == file_id && s.line <= line && s.end_line >= line)
         .collect();
     if syms.is_empty() {
-        return out;
+        return AT_LEGEND.to_string();
     }
     let innermost = syms.iter().max_by_key(|s| s.line).unwrap();
-    out.push_str(&format!(
+    let mut payload = format!(
         "<at p=\"{}\" l=\"{}\" sym=\"{}\" chain=\"{}\" root=\"{}\">",
         esc(f),
         line,
         esc(&innermost.name),
         1,
         esc(root)
-    ));
-    out.push_str(&format!(
+    );
+    payload.push_str(&format!(
         "<s n=\"{}\" t=\"{}\" l=\"{}\" el=\"{}\"/>",
         esc(&innermost.name),
         sym_tag(innermost.kind),
         innermost.line,
         innermost.end_line
     ));
-    out.push_str("</at>\n");
+    payload.push_str("</at>\n");
+
+    let est = crate::verbs::est_tokens_for(AT_LEGEND.len() + payload.len());
+    if let Some(pos) = payload.find('>') {
+        payload.insert_str(pos, &format!(" est_tokens=\"{}\"", est));
+    }
+
+    let mut out = String::new();
+    out.push_str(AT_LEGEND);
+    out.push_str(&payload);
     out
 }
 
@@ -113,16 +120,17 @@ pub fn impact(
         hops += 1;
     };
     let depth_used = max_depth.unwrap_or(hops);
-    let payload = format!(
+    let mut payload = format!(
         "<impact of=\"{}\" defs=\"{}\" reaches=\"{}\" depth=\"{}\" depth_capped=\"{}\" importers=\"0\" shown_importers=\"0\" importers_capped=\"0\" radius_tested=\"0\" radius_untested=\"0\" root=\"{}\" shown=\"0\" capped=\"0\" graph_ambiguous=\"0\" graph_unresolved=\"0\" counts_floor=\"1\" pr_iters=\"{}\" next=\"--safe-delete={}\"></impact>",
         esc(sel), defs_count, reached.len(), depth_used, depth_capped as u8, esc(root), pr_iters, esc(sel)
     );
+    let legend = crate::legends::pick(IMPACT_LEGEND, IMPACT_COMPACT, payload.len());
+    let est = crate::verbs::est_tokens_for(legend.len() + payload.len());
+    if let Some(pos) = payload.find('>') {
+        payload.insert_str(pos, &format!(" est_tokens=\"{}\"", est));
+    }
     let mut out = String::new();
-    out.push_str(crate::legends::pick(
-        IMPACT_LEGEND,
-        IMPACT_COMPACT,
-        payload.len(),
-    ));
+    out.push_str(legend);
     out.push_str(&payload);
     out
 }

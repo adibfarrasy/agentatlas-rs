@@ -9,6 +9,11 @@ pub fn escape_xml(s: &str) -> String {
         .replace('"', "&quot;")
 }
 
+/// Estimate tokens for a finished answer, matching expand's calibrated bytes/token rate.
+pub fn est_tokens_for(bytes: usize) -> usize {
+    ((bytes as f64) / 3.80 + 0.5) as usize
+}
+
 /// Innermost symbol whose byte span contains `byte` in `file_id`.
 fn enclosing(ing: &Ingest, file_id: usize, byte: usize) -> Option<&Symbol> {
     ing.symbols
@@ -127,8 +132,14 @@ pub fn grep(ing: &Ingest, g: &Graph, root: &str, pattern: &str) -> String {
     }
     payload.push_str("</grep>");
 
+    let legend = crate::legends::pick(GREP_LEGEND, GREP_COMPACT, payload.len());
+    let est = est_tokens_for(legend.len() + payload.len());
+    if let Some(pos) = payload.find('>') {
+        payload.insert_str(pos, &format!(" est_tokens=\"{}\"", est));
+    }
+
     let mut out = String::new();
-    out.push_str(crate::legends::pick(GREP_LEGEND, GREP_COMPACT, payload.len()));
+    out.push_str(legend);
     out.push_str(&payload);
     out
 }
@@ -259,8 +270,14 @@ fn hierarchy(ing: &Ingest, g: &Graph, root: &str, sel: &str, which: &str) -> Str
     }
     payload.push_str(&format!("</{}>", which));
 
+    let legend = crate::legends::pick(full, compact, payload.len());
+    let est = est_tokens_for(legend.len() + payload.len());
+    if let Some(pos) = payload.find('>') {
+        payload.insert_str(pos, &format!(" est_tokens=\"{}\"", est));
+    }
+
     let mut out = String::new();
-    out.push_str(crate::legends::pick(full, compact, payload.len()));
+    out.push_str(legend);
     out.push_str(&payload);
     out
 }
@@ -275,15 +292,57 @@ pub fn uses(ing: &Ingest, _g: &Graph, root: &str, sel: &str) -> String {
         .map(|(i, _)| i)
         .collect();
     let external = if defs.is_empty() { 1 } else { 0 };
+
     // call/read/write/import/extends use-sites: for the Go+Java surface the only captured role is
     // call (a method_invocation / object_creation / call_expression resolving to a def of sel).
     // role="type" is C/C++/ObjC-only per the legend; Go composite literals are not calls.
-    let payload = format!(
-        "<uses of=\"{}\" defs=\"{}\" external=\"{}\" count=\"0\" root=\"{}\" graph_ambiguous=\"0\" graph_unresolved=\"0\" counts_floor=\"1\"></uses>",
-        escape_xml(sel), defs.len(), external, escape_xml(root)
+    let mut sites: Vec<(usize, usize)> = ing
+        .refs
+        .iter()
+        .filter(|r| r.name == sel)
+        .map(|r| (r.file_id, r.start_byte))
+        .collect();
+    sites.sort_by(|a, b| {
+        row_tier(&ing.files[a.0])
+            .cmp(&row_tier(&ing.files[b.0]))
+            .then(ing.files[a.0].as_bytes().cmp(ing.files[b.0].as_bytes()))
+            .then(a.1.cmp(&b.1))
+    });
+
+    let mut file_cache: std::collections::HashMap<usize, Vec<u8>> = std::collections::HashMap::new();
+    let mut rows = String::new();
+    for (file_id, start_byte) in &sites {
+        let bytes = file_cache.entry(*file_id).or_insert_with(|| {
+            std::fs::read(format!("{}/{}", root, ing.files[*file_id])).unwrap_or_default()
+        });
+        let line = bytes[..(*start_byte).min(bytes.len())]
+            .iter()
+            .filter(|&&b| b == b'\n')
+            .count()
+            + 1;
+        let in_id = enclosing(ing, *file_id, *start_byte).map(|s| escape_xml(&s.name));
+        rows.push_str(&format!(
+            "<u role=\"call\" p=\"{}\"{}/>",
+            escape_xml(&format!("{}:{}", ing.files[*file_id], line)),
+            in_id
+                .map(|n| format!(" in_id=\"{}\"", n))
+                .unwrap_or_default()
+        ));
+    }
+
+    let mut payload = format!(
+        "<uses of=\"{}\" defs=\"{}\" external=\"{}\" count=\"{}\" root=\"{}\" graph_ambiguous=\"0\" graph_unresolved=\"0\" counts_floor=\"1\">{}</uses>",
+        escape_xml(sel), defs.len(), external, sites.len(), escape_xml(root), rows
     );
+
+    let legend = crate::legends::pick(USES_LEGEND, USES_COMPACT, payload.len());
+    let est = est_tokens_for(legend.len() + payload.len());
+    if let Some(pos) = payload.find('>') {
+        payload.insert_str(pos, &format!(" est_tokens=\"{}\"", est));
+    }
+
     let mut out = String::new();
-    out.push_str(crate::legends::pick(USES_LEGEND, USES_COMPACT, payload.len()));
+    out.push_str(legend);
     out.push_str(&payload);
     out
 }
