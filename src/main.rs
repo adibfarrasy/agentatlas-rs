@@ -63,7 +63,7 @@ fn main() {
         cli::Verb::FromTrace(s) => extraverbs::from_trace(&ing, &g, &root, &s),
         cli::Verb::Impact(s) => {
             let run = rank::pagerank(&g);
-            extraverbs::impact(&ing, &g, &root, &s, run.iterations)
+            extraverbs::impact(&ing, &g, &root, &s, run.iterations, cfg.depth)
         }
         cli::Verb::Gain => unreachable!(), // short-circuited above
     };

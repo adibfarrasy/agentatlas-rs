@@ -16,6 +16,7 @@ pub struct Config {
     pub no_cache: bool,
     pub top_k: Option<usize>,
     pub legend: Option<String>,
+    pub depth: Option<u32>,
 }
 
 impl Config {
@@ -37,6 +38,7 @@ impl Config {
             no_cache: false,
             top_k: None,
             legend: None,
+            depth: None,
         };
         for a in args {
             if let Some(v) = a.strip_prefix("--grep=") {
@@ -67,6 +69,8 @@ impl Config {
                 c.top_k = v.parse().ok();
             } else if let Some(v) = a.strip_prefix("--legend=") {
                 c.legend = Some(v.to_string());
+            } else if let Some(v) = a.strip_prefix("--depth=") {
+                c.depth = v.parse().ok();
             } else if a == "--no-cache" {
                 c.no_cache = true;
             } else if a == "--mcp" {
@@ -148,6 +152,7 @@ VERBS
 
 OPTIONS
   --top-k=N          cap the ranked rows
+  --depth=N          cap --impact traversal to N hops (default: unbounded)
   --gain-log=FILE    where the savings ledger lives (env RIPWIRE_GAIN_LOG)
   --no-gain-log      don't log this run
   --no-cache         don't reuse the per-repo index cache

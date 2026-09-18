@@ -78,22 +78,44 @@ pub fn at(ing: &Ingest, root: &str, seed: &str) -> String {
     out
 }
 
-pub fn impact(ing: &Ingest, g: &Graph, root: &str, sel: &str, pr_iters: u32) -> String {
+pub fn impact(
+    ing: &Ingest,
+    g: &Graph,
+    root: &str,
+    sel: &str,
+    pr_iters: u32,
+    max_depth: Option<u32>,
+) -> String {
     let defs = resolve(ing, sel);
     let defs_count = defs.len();
     let mut reached: std::collections::HashSet<usize> = std::collections::HashSet::new();
-    let mut stack: Vec<usize> = defs.clone();
-    while let Some(cur) = stack.pop() {
-        for (from, to, _) in &g.out_edges {
-            if *to == cur && !reached.contains(from) && !defs.contains(from) {
-                reached.insert(*from);
-                stack.push(*from);
+    let mut frontier: Vec<usize> = defs.clone();
+    let mut hops: u32 = 0;
+    let depth_capped = loop {
+        if frontier.is_empty() {
+            break false;
+        }
+        if let Some(d) = max_depth {
+            if hops >= d {
+                break true;
             }
         }
-    }
+        let mut next: Vec<usize> = Vec::new();
+        for cur in &frontier {
+            for (from, to, _) in &g.out_edges {
+                if to == cur && !reached.contains(from) && !defs.contains(from) {
+                    reached.insert(*from);
+                    next.push(*from);
+                }
+            }
+        }
+        frontier = next;
+        hops += 1;
+    };
+    let depth_used = max_depth.unwrap_or(hops);
     let payload = format!(
-        "<impact of=\"{}\" defs=\"{}\" reaches=\"{}\" importers=\"0\" shown_importers=\"0\" importers_capped=\"0\" radius_tested=\"0\" radius_untested=\"0\" root=\"{}\" shown=\"0\" capped=\"0\" graph_ambiguous=\"0\" graph_unresolved=\"0\" counts_floor=\"1\" pr_iters=\"{}\" next=\"--safe-delete={}\"></impact>",
-        esc(sel), defs_count, reached.len(), esc(root), pr_iters, esc(sel)
+        "<impact of=\"{}\" defs=\"{}\" reaches=\"{}\" depth=\"{}\" depth_capped=\"{}\" importers=\"0\" shown_importers=\"0\" importers_capped=\"0\" radius_tested=\"0\" radius_untested=\"0\" root=\"{}\" shown=\"0\" capped=\"0\" graph_ambiguous=\"0\" graph_unresolved=\"0\" counts_floor=\"1\" pr_iters=\"{}\" next=\"--safe-delete={}\"></impact>",
+        esc(sel), defs_count, reached.len(), depth_used, depth_capped as u8, esc(root), pr_iters, esc(sel)
     );
     let mut out = String::new();
     out.push_str(crate::legends::pick(
