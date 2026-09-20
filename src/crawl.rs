@@ -1,3 +1,4 @@
+use rayon::prelude::*;
 use std::path::{Path, PathBuf};
 
 pub struct FileEntry {
@@ -11,10 +12,9 @@ pub struct StatEntry {
     pub mtime_nanos: u64,
 }
 
-fn mtime_nanos(p: &Path) -> u64 {
-    std::fs::metadata(p)
+fn mtime_nanos(meta: &std::fs::Metadata) -> u64 {
+    meta.modified()
         .ok()
-        .and_then(|m| m.modified().ok())
         .and_then(|t| t.duration_since(std::time::UNIX_EPOCH).ok())
         .map(|d| d.as_nanos() as u64)
         .unwrap_or(0)
@@ -76,50 +76,58 @@ pub fn crawl(root: &Path) -> Vec<FileEntry> {
 }
 
 /// Stat-only walk: same skip/ext/size rules and byte-order sort as `crawl`, but reads nothing.
+/// Recurses with rayon so sibling subdirectories stat in parallel across cores.
 pub fn enumerate(root: &Path) -> Vec<StatEntry> {
+    let mut out = enumerate_dir(root, root);
+    out.sort_by(|a, b| a.path.as_bytes().cmp(b.path.as_bytes()));
+    out
+}
+
+fn enumerate_dir(root: &Path, dir: &Path) -> Vec<StatEntry> {
+    let Ok(rd) = std::fs::read_dir(dir) else {
+        return Vec::new();
+    };
     let mut out: Vec<StatEntry> = Vec::new();
-    let mut stack: Vec<PathBuf> = vec![root.to_path_buf()];
-    while let Some(dir) = stack.pop() {
-        let Ok(rd) = std::fs::read_dir(&dir) else {
+    let mut subdirs: Vec<PathBuf> = Vec::new();
+    for entry in rd.flatten() {
+        let Ok(ftype) = entry.file_type() else {
             continue;
         };
-        for entry in rd.flatten() {
-            let p = entry.path();
-            let name = p
-                .file_name()
-                .unwrap_or_default()
+        let p = entry.path();
+        let name = entry.file_name().to_string_lossy().into_owned();
+        if ftype.is_dir() {
+            if is_skipped_dir(&name) {
+                continue;
+            }
+            subdirs.push(p);
+        } else if ftype.is_file() {
+            let ext = p.extension().and_then(|e| e.to_str()).unwrap_or("");
+            if !is_source(ext) {
+                continue;
+            }
+            let Ok(meta) = entry.metadata() else {
+                continue;
+            };
+            if meta.len() > MAX_FILE_BYTES as u64 {
+                continue;
+            }
+            let rel = p
+                .strip_prefix(root)
+                .unwrap_or(&p)
                 .to_string_lossy()
                 .into_owned();
-            if p.is_dir() {
-                if is_skipped_dir(&name) {
-                    continue;
-                }
-                stack.push(p);
-            } else if p.is_file() {
-                let ext = p.extension().and_then(|e| e.to_str()).unwrap_or("");
-                if !is_source(ext) {
-                    continue;
-                }
-                let Ok(meta) = std::fs::metadata(&p) else {
-                    continue;
-                };
-                if meta.len() > MAX_FILE_BYTES as u64 {
-                    continue;
-                }
-                let rel = p
-                    .strip_prefix(root)
-                    .unwrap_or(&p)
-                    .to_string_lossy()
-                    .into_owned();
-                out.push(StatEntry {
-                    path: rel,
-                    len: meta.len(),
-                    mtime_nanos: mtime_nanos(&p),
-                });
-            }
+            out.push(StatEntry {
+                path: rel,
+                len: meta.len(),
+                mtime_nanos: mtime_nanos(&meta),
+            });
         }
     }
-    out.sort_by(|a, b| a.path.as_bytes().cmp(b.path.as_bytes()));
+    out.par_extend(
+        subdirs
+            .par_iter()
+            .flat_map(|d| enumerate_dir(root, d).into_par_iter()),
+    );
     out
 }
 
