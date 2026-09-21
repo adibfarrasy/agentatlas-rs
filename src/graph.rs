@@ -1,4 +1,5 @@
 use crate::ingest::{Ingest, Symbol};
+use std::collections::HashMap;
 
 pub struct Edge {
     pub from: usize,
@@ -17,46 +18,49 @@ pub struct Graph {
 const TIER_SAME_FILE: f32 = 1.0;
 
 /// Enclosing definition of a reference, per file: innermost def whose byte span contains the ref.
-fn enclosing(defs: &[Symbol], file_id: usize, sb: usize, eb: usize) -> Option<&Symbol> {
-    defs.iter()
-        .filter(|s| s.file_id == file_id && s.start_byte <= sb && s.end_byte >= eb)
-        .max_by_key(|s| s.start_byte)
+/// `defs` is (original symbol index, symbol) pairs sorted by (file_id, start_byte), so the file's
+/// defs are a contiguous slice found by binary search instead of a full scan.
+fn enclosing(defs: &[(usize, &Symbol)], file_id: usize, sb: usize, eb: usize) -> Option<usize> {
+    let start = defs.partition_point(|(_, s)| s.file_id < file_id);
+    let end = start + defs[start..].partition_point(|(_, s)| s.file_id == file_id);
+    defs[start..end]
+        .iter()
+        .filter(|(_, s)| s.start_byte <= sb && s.end_byte >= eb)
+        .max_by_key(|(_, s)| s.start_byte)
+        .map(|(i, _)| *i)
 }
 
 /// Resolve a reference's callee candidates by the precedence ladder: same file → same dir → unique
-/// global (same language). Returns the candidate symbol ids.
-fn candidates(ing: &Ingest, name: &str, file_id: usize) -> Vec<usize> {
-    let same_file: Vec<usize> = ing
-        .symbols
+/// global (same language). Returns the candidate symbol ids. `by_name` narrows to same-named
+/// symbols up front instead of scanning every symbol per reference.
+fn candidates(ing: &Ingest, by_name: &HashMap<&str, Vec<usize>>, name: &str, file_id: usize) -> Vec<usize> {
+    let Some(ids) = by_name.get(name) else {
+        return Vec::new();
+    };
+    let same_file: Vec<usize> = ids
         .iter()
-        .enumerate()
-        .filter(|(_, s)| s.name == name && s.file_id == file_id)
-        .map(|(i, _)| i)
+        .copied()
+        .filter(|&i| ing.symbols[i].file_id == file_id)
         .collect();
     if !same_file.is_empty() {
         return same_file;
     }
     let dir = ing.files[file_id].rsplit('/').next().unwrap_or("");
-    let same_dir: Vec<usize> = ing
-        .symbols
+    let same_dir: Vec<usize> = ids
         .iter()
-        .enumerate()
-        .filter(|(_, s)| {
-            s.name == name
-                && ing.files[s.file_id].rsplit('/').next().unwrap_or("") == dir
-                && s.file_id != file_id
+        .copied()
+        .filter(|&i| {
+            let s = &ing.symbols[i];
+            s.file_id != file_id && ing.files[s.file_id].rsplit('/').next().unwrap_or("") == dir
         })
-        .map(|(i, _)| i)
         .collect();
     if !same_dir.is_empty() {
         return same_dir;
     }
-    let global: Vec<usize> = ing
-        .symbols
+    let global: Vec<usize> = ids
         .iter()
-        .enumerate()
-        .filter(|(_, s)| s.name == name && s.file_id != file_id)
-        .map(|(i, _)| i)
+        .copied()
+        .filter(|&i| ing.symbols[i].file_id != file_id)
         .collect();
     if global.len() == 1 {
         return global;
@@ -65,19 +69,23 @@ fn candidates(ing: &Ingest, name: &str, file_id: usize) -> Vec<usize> {
 }
 
 pub fn build(ing: &Ingest) -> Graph {
-    // Per-file def spans for enclosing lookup.
-    let mut defs = ing.symbols.clone();
-    defs.sort_by_key(|s| (s.file_id, s.start_byte));
+    // Per-file def spans for enclosing lookup: (original index, symbol) sorted by (file_id, start_byte).
+    let mut defs: Vec<(usize, &Symbol)> = ing.symbols.iter().enumerate().collect();
+    defs.sort_by_key(|(_, s)| (s.file_id, s.start_byte));
+
+    // Name -> symbol indices, so candidate resolution doesn't rescan every symbol per reference.
+    let mut by_name: HashMap<&str, Vec<usize>> = HashMap::new();
+    for (i, s) in ing.symbols.iter().enumerate() {
+        by_name.entry(s.name.as_str()).or_default().push(i);
+    }
 
     // Accumulate edges: from (enclosing def) → resolved callee.
-    let mut acc: std::collections::HashMap<(usize, usize), (f32, u32)> =
-        std::collections::HashMap::new();
+    let mut acc: HashMap<(usize, usize), (f32, u32)> = HashMap::new();
     for r in &ing.refs {
-        let Some(encl) = enclosing(&defs, r.file_id, r.start_byte, r.end_byte) else {
+        let Some(from) = enclosing(&defs, r.file_id, r.start_byte, r.end_byte) else {
             continue;
         };
-        let from = defs.iter().position(|s| std::ptr::eq(s, encl)).unwrap();
-        let cands = candidates(ing, &r.name, r.file_id);
+        let cands = candidates(ing, &by_name, &r.name, r.file_id);
         if cands.is_empty() {
             continue; // external / unresolved — no edge
         }
