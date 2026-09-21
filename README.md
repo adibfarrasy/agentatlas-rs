@@ -57,7 +57,7 @@ naive read those files would have cost, plus time:
 
 ```bash
 agentatlas --for="find the point distance"   # logs a row
-agentatlas gain                              # totals, per-repo, per-verb, disclosure
+agentatlas gain                              # totals, per-project, per-verb, disclosure
 ```
 
 The naive side is computed, not guessed: the byte size of the distinct files your answer named, ÷4.

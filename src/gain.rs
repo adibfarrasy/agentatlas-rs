@@ -313,7 +313,7 @@ pub fn render(r: &GainReport, _rate: f64, ledger: &str) -> String {
     ));
     let mut ranked_repos: Vec<&(String, u64, u64)> = r.per_repo.iter().collect();
     ranked_repos.sort_by(|a, b| b.2.cmp(&a.2));
-    out.push_str("\nper-repo (runs, spent_tokens), top 10 by spent_tokens:\n");
+    out.push_str("\nper-project (runs, spent_tokens), top 10 by spent_tokens:\n");
     for (repo, n, st) in ranked_repos.iter().take(10) {
         out.push_str(&format!(
             "  {:<40} {:>4}  {}\n",
@@ -323,7 +323,7 @@ pub fn render(r: &GainReport, _rate: f64, ledger: &str) -> String {
         ));
     }
     if ranked_repos.len() > 10 {
-        out.push_str(&format!("  ... and {} more repos\n", ranked_repos.len() - 10));
+        out.push_str(&format!("  ... and {} more projects\n", ranked_repos.len() - 10));
     }
     out.push_str("\nper-verb (runs, spent_tokens):\n");
     for (verb, n, st) in &r.per_verb {
